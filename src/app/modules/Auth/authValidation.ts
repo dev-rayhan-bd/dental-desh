@@ -61,17 +61,12 @@ const AdminloginValidationSchema = z.object({
 
 export const registerUserValidationSchema = z
   .object({
-    firstName: z
-      .string({ message: "First name is required" })
+    fullName: z
+      .string({ message: "Full name is required" })
       .trim()
-      .min(1, { message: "First name cannot be empty" })
-      .max(50, { message: "First name cannot exceed 50 characters" }),
+      .min(1, { message: "Full name cannot be empty" })
+      .max(50, { message: "Full name cannot exceed 50 characters" }),
 
-    lastName: z
-      .string({ message: "Last name is required" })
-      .trim()
-      .min(1, { message: "Last name cannot be empty" })
-      .max(50, { message: "Last name cannot exceed 50 characters" }),
     fcmToken: z
       .string({ message: "fcmToken is required" })
       .trim(),
@@ -92,18 +87,11 @@ export const registerUserValidationSchema = z
 
 export const editProfileSchema = z
   .object({
-    firstName: z
+    fullName: z
       .string()
       .trim()
-      .min(1, "First name is required")
-      .max(50, "First name cannot exceed 50 characters")
-      .optional(),
-
-    lastName: z
-      .string()
-      .trim()
-      .min(1, "Last name is required")
-      .max(50, "Last name cannot exceed 50 characters")
+      .min(1, "Full name is required")
+      .max(50, "Full name cannot exceed 50 characters")
       .optional(),
 
     contact: contactSchema.optional(),

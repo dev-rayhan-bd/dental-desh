@@ -8,9 +8,8 @@ import config from "../../config";
 
 const userSchema = new Schema<TUser, User, IUserMethods>(
   {
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    fullName: { type: String },
+  
+    fullName: { type: String ,required:true},
     image: { type: String },
     email: { type: String, required: true, unique: true },
     contact: { type: String, required: true },

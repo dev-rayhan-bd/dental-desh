@@ -20,10 +20,7 @@ const registeredUserIntoDB = async (payload: TUser) => {
   if (existing) {
     throw new AppError(httpStatus.CONFLICT, "This user already exists!");
   }
-const firstName=payload.firstName
-const lastName=payload.lastName
-const fullName=`${firstName} ${lastName}`
-payload.fullName=fullName
+
   const refercode = await generateReferCode();
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -37,7 +34,7 @@ payload.fullName=fullName
     },
   };
 
-  console.log("new user----->", newUserData);
+  // console.log("new user----->", newUserData);
 
   const user = await UserModel.create(newUserData);
 
