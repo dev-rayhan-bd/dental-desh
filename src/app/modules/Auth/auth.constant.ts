@@ -1,8 +1,8 @@
 export const USER_ROLE = {
 
   superAdmin: 'superAdmin',
-  admin: 'admin',
   user: 'user',
+  driver: 'driver'
 
 } as const;
 export type TUserRole = keyof typeof USER_ROLE;

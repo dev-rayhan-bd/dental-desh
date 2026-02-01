@@ -7,6 +7,7 @@ export interface TUser {
   fullName?: string;
   image?: string;
   email: string;
+  businessId?: string;
   password: string;
   dob: Date;
   contact: string;
@@ -15,19 +16,16 @@ export interface TUser {
     code: string | null;
     expireDate: Date | null;
   };
-  refercode: string;
+
   status: string;
   fcmToken: string;
   passwordChangedAt?: Date;
   role: TUserRole;
-  point: number;
-  loyalityTier: string;
-  lastView: string;
+
   createdAt?: Date;
   updatedAt?: Date;
    isOtpVerified:boolean;
-    lastBirthdayRewardYear?: number;
-  canClaimBirthdayReward: boolean;
+
 }
 
 export interface IUserMethods {

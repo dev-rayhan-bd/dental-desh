@@ -9,25 +9,30 @@ import bcrypt from "bcrypt";
 
 import { TUser } from "../User/user.interface";
 import { UserModel } from "../User/user.model";
-import { generateReferCode } from "../../utils/generateReferCode";
 import { sendMail } from "../../utils/sendMail";
 import config from "../../config";
 import { sendNotificationToAdmins } from "../../utils/sendNotification";
 
 // register new user
 const registeredUserIntoDB = async (payload: TUser) => {
+   if (payload.role === 'user' && !payload.businessId) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Business ID is required for Dental Technetians!"
+    );
+  }
   const existing = await UserModel.isUserExistsByEmail(payload.email);
   if (existing) {
     throw new AppError(httpStatus.CONFLICT, "This user already exists!");
   }
 
-  const refercode = await generateReferCode();
+
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
   const newUserData = {
     ...payload,
-    refercode,
+
     verification: {
       code: otp,
       expireDate: new Date(Date.now() + 1 * 60 * 1000), // 1-minute expiry

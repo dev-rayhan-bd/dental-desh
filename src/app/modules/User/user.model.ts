@@ -12,6 +12,7 @@ const userSchema = new Schema<TUser, User, IUserMethods>(
     fullName: { type: String ,required:true},
     image: { type: String },
     email: { type: String, required: true, unique: true },
+    businessId: { type: String, unique: true },
     contact: { type: String, required: true },
     location: { type: String, required: true },
     dob: { type: Date, required: true },
@@ -26,28 +27,20 @@ const userSchema = new Schema<TUser, User, IUserMethods>(
         default: null,
       },
     },
- refercode: { type: String, unique: true, sparse: true },
-    status: {
-      type: String,
-      required: true,
-      enum: UserStatus,
-      default: "in-progress",
-    },
+
 
  role: { 
   type: String, 
   required: true, 
-  enum: ["user", "admin", "superAdmin"], 
+  enum: ["user", "driver", "superAdmin"], 
   default: "user" 
 },
     fcmToken: { type: String, required: true },
-    point: { type: Number, default:0},
-    loyalityTier: { type: String,   enum: ["Silver", "Gold", "Platinum"], default: "Silver"},
+
     isOtpVerified: { type: Boolean, default: false },
-    lastView:{ type: String },
+
     passwordChangedAt: { type: Date },
-    lastBirthdayRewardYear: { type: Number, default: 0 },
-    canClaimBirthdayReward: { type: Boolean, default: false },
+
   },
   {
     timestamps: true,
