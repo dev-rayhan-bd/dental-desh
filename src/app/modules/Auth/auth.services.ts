@@ -12,6 +12,8 @@ import { UserModel } from "../User/user.model";
 import { sendMail } from "../../utils/sendMail";
 import config from "../../config";
 import { sendNotificationToAdmins } from "../../utils/sendNotification";
+import { IRider } from "../rider/rider.interface";
+import { Rider } from "../rider/rider.model";
 
 // register new user
 const registeredUserIntoDB = async (payload: TUser) => {
@@ -54,53 +56,126 @@ const registeredUserIntoDB = async (payload: TUser) => {
     result: user,
   };
 };
+// export const verifyOTPForRegistration = async (email: string, otp: string) => {
+//   const user = await UserModel.findOne({ email });
+//   if (!user) {
+//     throw new AppError(httpStatus.NOT_FOUND, "User not found");
+//   }
+
+//   //  Check OTP expiry
+//   if (
+//     !user.verification?.expireDate ||
+//     user.verification.expireDate < new Date()
+//   ) {
+//     throw new AppError(
+//       httpStatus.UNAUTHORIZED,
+//       "OTP has expired,resend Otp And try again"
+//     );
+//   }
+
+//   //  Compare OTP
+//   const isMatch = user.compareVerificationCode(otp);
+//   if (!isMatch) {
+//     throw new AppError(httpStatus.UNAUTHORIZED, "OTP not matched, try again");
+//   }
+//   // when otp is verified
+//   user.isOtpVerified = true;
+//   //  If successful, you can clear the OTP
+//   user.verification = undefined;
+//   await user.save();
+//   // Generate JWT tokens
+//   const jwtPayload = {
+//     userId: user._id!.toString(),
+//     role: user?.role,
+//   };
+//   const accessToken = createToken(
+//     jwtPayload,
+//     config.jwt_access_secret as string,
+//     config.jwt_access_expires_in as string
+//   );
+//   const refreshToken = createToken(
+//     jwtPayload,
+//     config.jwt_refresh_secret as string,
+//     config.jwt_refresh_expires_in as string
+//   );
+//     await sendNotificationToAdmins(
+//     'New User Registered! 👤',
+//     `${user.fullName} has just joined `,
+//     'general'
+//   );
+//   return {
+//     status: httpStatus.OK,
+//     message: "OTP verified successfully",
+//     accessToken,
+//     refreshToken,
+//   };
+// };
+
+
+
+
 export const verifyOTPForRegistration = async (email: string, otp: string) => {
-  const user = await UserModel.findOne({ email });
+
+  let user: any = await UserModel.findOne({ email });
+
+
   if (!user) {
-    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+    user = await Rider.findOne({ email });
   }
 
-  //  Check OTP expiry
+
+  if (!user) {
+    throw new AppError(httpStatus.NOT_FOUND, "Account not found");
+  }
+
+
   if (
     !user.verification?.expireDate ||
     user.verification.expireDate < new Date()
   ) {
     throw new AppError(
       httpStatus.UNAUTHORIZED,
-      "OTP has expired,resend Otp And try again"
+      "OTP has expired, resend OTP and try again"
     );
   }
 
-  //  Compare OTP
+
   const isMatch = user.compareVerificationCode(otp);
   if (!isMatch) {
     throw new AppError(httpStatus.UNAUTHORIZED, "OTP not matched, try again");
   }
-  // when otp is verified
+
+  
   user.isOtpVerified = true;
-  //  If successful, you can clear the OTP
-  user.verification = undefined;
+  user.verification = undefined; 
   await user.save();
-  // Generate JWT tokens
+
+
   const jwtPayload = {
     userId: user._id!.toString(),
-    role: user?.role,
+    role: user?.role, 
   };
+
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
     config.jwt_access_expires_in as string
   );
+
   const refreshToken = createToken(
     jwtPayload,
     config.jwt_refresh_secret as string,
     config.jwt_refresh_expires_in as string
   );
-    await sendNotificationToAdmins(
-    'New User Registered! 👤',
-    `${user.fullName} has just joined `,
+
+
+  const welcomeMessage = user.role === 'driver' ? 'New Rider Registered!' : 'New User Registered!';
+  await sendNotificationToAdmins(
+    `${welcomeMessage} 👤`,
+    `${user.fullName} has just joined.`,
     'general'
   );
+
   return {
     status: httpStatus.OK,
     message: "OTP verified successfully",
@@ -108,8 +183,6 @@ export const verifyOTPForRegistration = async (email: string, otp: string) => {
     refreshToken,
   };
 };
-// resend otp
-// auth.service.ts
 
 const resendOTP = async (email: string) => {
   const user = await UserModel.findOne({ email });
@@ -426,7 +499,13 @@ export const forgotPass = async (email: string) => {
   );
 };
 export const verifyOTP = async (email: string, otp: string) => {
-  const user = await UserModel.findOne({ email });
+
+    let user = await UserModel.findOne({ email });
+  if (!user) {
+    user = await Rider.findOne({ email }) as any; // Rider কে User হিসেবে ট্রিট করা
+  }
+
+
   if (!user) {
     throw new AppError(httpStatus.NOT_FOUND, "User not found");
   }
@@ -458,8 +537,67 @@ export const verifyOTP = async (email: string, otp: string) => {
   };
 };
 
+
+
+
+
+
+
+const registerRiderIntoDB = async (payload: IRider) => {
+
+  const existingUser = await UserModel.findOne({ 
+    $or: [{ email: payload.email }, { identificationNo: payload.identificationNo }] 
+  });
+  
+  if (existingUser) {
+    throw new AppError(httpStatus.CONFLICT, "Email or Identification No already exists!");
+  }
+
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  const riderData = {
+    ...payload,
+    verification: {
+      code: otp,
+      expireDate: new Date(Date.now() + 5 * 60 * 1000),
+    },
+  };
+  const user = await UserModel.create({
+    email: payload.email,
+    password: payload.password,
+    role: 'driver'
+  });
+
+  const result = await Rider.create(riderData);
+
+
+  await sendMail(
+    payload.email,
+    "Rider Verification Code",
+    `Your verification code is: ${otp}. It will expire in 5 minutes.`
+  );
+
+  return result;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const AuthServices = {
   registeredUserIntoDB,
+  registerRiderIntoDB,
   loginUser,
   changePassword,
   refreshToken,

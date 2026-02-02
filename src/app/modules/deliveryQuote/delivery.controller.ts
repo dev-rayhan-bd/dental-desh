@@ -5,6 +5,31 @@ import httpStatus from 'http-status';
 import { DeliveryQuoteService } from './deliveryQuote.services';
 import uploadImage from '../../middleware/upload';
 
+
+
+const createDeliveryQuote = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.userId; 
+  const payload = {
+    ...req.body,
+    user: userId, 
+  };
+
+  const result = await DeliveryQuoteService.createDeliveryQuoteIntoDB(payload);
+
+  sendResponse(res, {
+    statusCode: httpStatus.CREATED,
+    success: true,
+    message: 'Delivery quote created successfully!',
+    data: result,
+  });
+});
+
+
+
+
+
+
+
 const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
   const { id, index } = req.params;
   const { status, message } = req.body;
@@ -30,4 +55,4 @@ const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const DeliveryQuoteController = { updateParcelStatus };
+export const DeliveryQuoteController = { createDeliveryQuote,updateParcelStatus };

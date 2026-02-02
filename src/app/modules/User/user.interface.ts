@@ -7,7 +7,7 @@ export interface TUser {
   fullName?: string;
   image?: string;
   email: string;
-  businessId?: string;
+  businessId: string;
   password: string;
   dob: Date;
   contact: string;

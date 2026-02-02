@@ -10,6 +10,7 @@ import { AuthValidation } from './authValidation';
 import validateRequest from '../../middleware/validateRequest';
 import auth from '../../middleware/auth';
 import { upload } from '../../middleware/multer';
+import { RiderValidation } from '../rider/rider.validation';
 
 const router = express.Router();
 
@@ -27,6 +28,33 @@ router.post(
 
   AuthControllers.registerUser,
 );
+
+
+
+router.post(
+  '/register-rider',
+
+  upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'drivingLicense', maxCount: 1 },
+    { name: 'vehicleImage', maxCount: 1 },
+  ]),
+
+  (req, res, next) => {
+    if (req.body.body) {
+      req.body = JSON.parse(req.body.body);
+    }
+    next();
+  },
+
+  validateRequest(RiderValidation.createRiderZodSchema), 
+  AuthControllers.registerRider
+);
+
+
+
+
+
 router.post(
   '/resendOtp',
   AuthControllers.resendOtp,
@@ -42,7 +70,7 @@ router.post('/admin/login',
 router.post('/changePassword',
   
     validateRequest(AuthValidation.changePasswordValidationSchema),
-    auth(USER_ROLE.user,USER_ROLE.admin,USER_ROLE.superAdmin),
+    auth(USER_ROLE.user,USER_ROLE.superAdmin),
     AuthControllers.changePassword
 )
 router.post(

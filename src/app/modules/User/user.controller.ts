@@ -48,7 +48,7 @@ const getMyProfile = catchAsync(async (req: Request, res: Response) => {
 });
 const getSingleProfile = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const result = await UserServices.getMyProfileFromDB(id);
+  const result = await UserServices.getMyProfileFromDB(id as string);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -83,7 +83,7 @@ const deleteProfile = catchAsync(async (req: Request, res: Response) => {
 const deleteUser = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const result = await UserServices.deleteUserFromDB(id);
+  const result = await UserServices.deleteUserFromDB(id as string);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -97,7 +97,7 @@ const toggleUserBlock = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status } = req.body;
 
-  const result = await UserServices.blockUserFromDB(id, status);
+  const result = await UserServices.blockUserFromDB(id as string, status);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -107,17 +107,17 @@ const toggleUserBlock = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
-  const { year } = req.params;
-  const result = await UserServices.getDashboardStatsFromDB(Number(year));
+// const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
+//   const { year } = req.params;
+//   const result = await UserServices.getDashboardStatsFromDB(Number(year));
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Dashboard stats retrieved successfully!",
-    data: result,
-  });
-});
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: "Dashboard stats retrieved successfully!",
+//     data: result,
+//   });
+// });
 
 export const UserControllers = {
   updateProfile,
@@ -128,5 +128,5 @@ export const UserControllers = {
   getSingleProfile,
   deleteUser,
   toggleUserBlock,
-  getDashboardStats,
+  // getDashboardStats,
 };

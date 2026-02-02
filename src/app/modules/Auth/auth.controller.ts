@@ -177,6 +177,45 @@ const verifyYourOTP = catchAsync(async (req:Request, res:Response) => {
     });
   });
 
+
+
+
+const registerRider = catchAsync(async (req: Request, res: Response) => {
+  const riderPayload = req.body;
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+
+  if (files?.image) {
+    riderPayload.image = await uploadImage(req, files.image[0]);
+  }
+  if (files?.drivingLicense) {
+    riderPayload.drivingLicense = await uploadImage(req, files.drivingLicense[0]);
+  }
+  if (files?.vehicleImage) {
+    riderPayload.vehicleImage = await uploadImage(req, files.vehicleImage[0]);
+  }
+
+
+  riderPayload.role = 'driver';
+
+  
+  const result = await AuthServices.registerRiderIntoDB(riderPayload);
+
+  sendResponse(res, {
+    success: true,
+    message: 'Rider registered successfully! Please verify the OTP sent to your email.',
+    statusCode: httpStatus.CREATED,
+    data: result,
+  });
+});
+
+
+
+
+
+
+
+
 export const AuthControllers = {
-  registerUser,userLogin,changePassword,refreshToken,forgotPassword,verifyYourOTP,resetPassword,VerifyOtpForRegistration,resendOtp,AdminLogin
+  registerUser,registerRider,userLogin,changePassword,refreshToken,forgotPassword,verifyYourOTP,resetPassword,VerifyOtpForRegistration,resendOtp,AdminLogin
 };

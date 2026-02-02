@@ -1,39 +1,64 @@
 import { Schema, model } from 'mongoose';
 import { IRider, RiderModel } from './rider.interface';
-
-const riderSchema = new Schema<IRider, RiderModel>(
+import { IUserMethods } from '../User/user.interface';
+import config from '../../config';
+import bcrypt from "bcrypt";
+const riderSchema = new Schema<IRider, RiderModel, IUserMethods>(
   {
-    fullName: { type: String, required: true, trim: true },
-    image: { type: String },
-    email: { type: String, required: true, unique: true, lowercase: true },
+    fullName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true, select: false },
     contact: { type: String, required: true },
-    dob: { type: Date, required: true },
-    identificationNo: { type: String, required: true, unique: true },
     location: { type: String, required: true },
-    vehicleType: {
-      type: String,
-      enum: ['car', 'bike', 'other'],
-      required: true,
+    dob: { type: Date, required: true },
+    role: { type: String, default: "driver" },
+    fcmToken: { type: String, required: true },
+    isOtpVerified: { type: Boolean, default: false },
+    verification: {
+      code: { type: String, default: null },
+      expireDate: { type: Date, default: null },
     },
+
+    identificationNo: { type: String, required: true, unique: true },
+    vehicleType: { type: String, enum: ["car", "bike", "other"], required: true },
     vehicleNumber: { type: String, required: true, unique: true },
     drivingLicense: { type: String, required: true },
     vehicleImage: { type: String, required: true },
-    gender: {
-      type: String,
-      enum: ['male', 'female', 'other'],
-      required: true,
-    },
-    reviews: [{ type: Schema.Types.ObjectId, ref: 'Review' }],
-    status: {
-      type: String,
-      enum: ['active', 'blocked'],
-      default: 'active',
-    },
+    gender: { type: String, enum: ["male", "female", "other"], required: true },
     isAvailable: { type: Boolean, default: true },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
+  
+
+riderSchema.pre("save", async function () {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(
+      this.password,
+      Number(config.bcrypt_salt_rounds)
+    );
+  }
+
+  if (this.verification?.code && !this.verification.code.startsWith("$2b$")) {
+    this.verification.code = bcrypt.hashSync(
+      this.verification.code,
+      Number(config.bcrypt_salt_rounds)
+    );
+  }
+
+});
+
+riderSchema.methods.compareVerificationCode = function (userPlaneCode: string) {
+  if (!this.verification?.code) return false;
+  return bcrypt.compareSync(userPlaneCode, this.verification.code);
+};
+
+riderSchema.statics.isUserExistsByEmail = async function (email: string) {
+  return await this.findOne({ email }).select("+password");
+};
+
+riderSchema.statics.isPasswordMatched = async function (plainTextPassword, hashedPassword) {
+  return await bcrypt.compare(plainTextPassword, hashedPassword);
+};
 
 export const Rider = model<IRider, RiderModel>('Rider', riderSchema);

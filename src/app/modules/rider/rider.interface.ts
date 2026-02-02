@@ -1,26 +1,21 @@
-import { Model, Types } from 'mongoose';
+import { Model } from "mongoose";
+import { TUser, IUserMethods, User } from "../User/user.interface";
 
-export type TVehicleType = 'car' | 'bike' | 'other';
-export type TGender = 'male' | 'female' | 'other';
 
-export interface IRider {
-  fullName: string;
-  image?: string;
-  email: string;
-  contact: string; // Phone number
-  dob: Date;
-  identificationNo: string; // NID or Passport
-  location: string;
-  vehicleType: TVehicleType;
+export interface IRider extends TUser {
+  identificationNo: string;
+  vehicleType: 'car' | 'bike' | 'other';
   vehicleNumber: string;
-  drivingLicense: string; // URL to image
-  vehicleImage: string; // URL to image
-  gender: TGender;
-  reviews?: Types.ObjectId[]; // Reference to a Review model
-  status: 'active' | 'blocked';
+  drivingLicense: string;
+  vehicleImage: string;
+  gender: 'male' | 'female' | 'other';
   isAvailable: boolean;
 }
 
-export interface RiderModel extends Model<IRider> {
-  // Add static methods here if needed
+
+export interface RiderModel extends Model<IRider, {}, IUserMethods> {
+  isUserExistsByEmail(email: string): Promise<IRider>;
+  isUserExistsById(id: string): Promise<IRider>;
+  isPasswordMatched(plainTextPassword: string, hashedPassword: string): Promise<boolean>;
+  isJWTIssuedBeforePasswordChanged(passwordChangedTimestamp: Date, jwtIssuedTimestamp: number): boolean;
 }

@@ -2,6 +2,35 @@ import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
 import { DeliveryQuote } from './deliveryQuote.model';
 import { Order } from '../Order/order.model';
+import { generateTrackingId } from '../../utils/generateTrackingId';
+import { IDeliveryQuote } from './deliveryQuote.interface';
+
+
+
+
+const createDeliveryQuoteIntoDB = async (payload: Partial<IDeliveryQuote>) => {
+
+  payload.trackingId = generateTrackingId();
+
+
+  payload.timeline = [
+    {
+      status: 'pending',
+      message: 'Your delivery request has been placed and is waiting for rider acceptance.',
+      time: new Date(),
+    },
+  ];
+
+
+  const result = await DeliveryQuote.create(payload);
+  return result;
+};
+
+
+
+
+
+
 
 const updateParcelStatusInDB = async (quoteId: string, index: number, payload: any) => {
   const quote = await DeliveryQuote.findById(quoteId);
@@ -26,7 +55,7 @@ const updateParcelStatusInDB = async (quoteId: string, index: number, payload: a
 
   const result = await DeliveryQuote.findByIdAndUpdate(quoteId, updateFields, { new: true });
 
-  // সব পার্সেল ডেলিভারি হয়ে গেলে Order হিস্ট্রিতে মুভ করা
+ 
   const isAllDelivered = result?.dropOffs.every(d => d.status === 'delivered');
   if (isAllDelivered) {
     await DeliveryQuote.findByIdAndUpdate(quoteId, { status: 'delivered' });
@@ -35,10 +64,10 @@ const updateParcelStatusInDB = async (quoteId: string, index: number, payload: a
     if (finalData) {
       const { _id, ...orderData } = finalData;
       await Order.create({ ...orderData, completedAt: new Date() });
-      await DeliveryQuote.findByIdAndDelete(quoteId); // একটিভ লিস্ট থেকে রিমুভ
+      await DeliveryQuote.findByIdAndDelete(quoteId);
     }
   }
   return result;
 };
 
-export const DeliveryQuoteService = { updateParcelStatusInDB };
+export const DeliveryQuoteService = { createDeliveryQuoteIntoDB,updateParcelStatusInDB };
