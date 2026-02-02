@@ -39,13 +39,16 @@ router.post(
     { name: 'drivingLicense', maxCount: 1 },
     { name: 'vehicleImage', maxCount: 1 },
   ]),
+  (req: Request, res: Response, next: NextFunction) => {
+    // console.log("req data--->",req.files);
 
-  (req, res, next) => {
-    if (req.body.body) {
+    if (req.body) {
+      // console.log("req data inside condition--->",req.body.body);
       req.body = JSON.parse(req.body.body);
     }
     next();
   },
+
 
   validateRequest(RiderValidation.createRiderZodSchema), 
   AuthControllers.registerRider

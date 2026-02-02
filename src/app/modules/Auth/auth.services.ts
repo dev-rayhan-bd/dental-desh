@@ -555,7 +555,13 @@ const registerRiderIntoDB = async (payload: IRider) => {
 
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
+  const riderPayloadWithVerification = {
+    ...payload,
+    verification: {
+      code: otp,
+      expireDate: new Date(Date.now() + 5 * 60 * 1000),
+    },
+  };
   const riderData = {
     ...payload,
     verification: {
@@ -564,12 +570,24 @@ const registerRiderIntoDB = async (payload: IRider) => {
     },
   };
   const user = await UserModel.create({
+    fullName: payload.fullName,
     email: payload.email,
     password: payload.password,
-    role: 'driver'
+    contact: payload.contact,
+    location: payload.location,
+    dob: payload.dob,
+    fcmToken: payload.fcmToken,
+    role: 'driver',
+    verification: riderPayloadWithVerification.verification 
   });
 
-  const result = await Rider.create(riderData);
+  const result = await Rider.create({
+    ...payload,
+    _id: user._id, 
+  });
+
+
+
 
 
   await sendMail(

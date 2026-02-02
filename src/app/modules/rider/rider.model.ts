@@ -5,6 +5,7 @@ import config from '../../config';
 import bcrypt from "bcrypt";
 const riderSchema = new Schema<IRider, RiderModel, IUserMethods>(
   {
+    image: { type: String ,required:true},
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, select: false },

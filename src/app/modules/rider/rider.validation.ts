@@ -7,17 +7,30 @@ const createRiderZodSchema = z.object({
   dob: z.string().min(1, "Date of birth is required"),
   identificationNo: z.string().min(1, "NID/Passport No is required"),
   location: z.string().trim().min(1, "Location is required"),
-  
-  // আপনার অন্য প্রজেক্টের মতো সহজ এনাম
+   fcmToken: z
+      .string({ message: "fcmToken is required" })
+      .trim(),
+
   vehicleType: z.enum(['car', 'bike', 'other']), 
   
   vehicleNumber: z.string().min(1, "Vehicle number is required"),
   
-  // সহজ এনাম
+
   gender: z.enum(['male', 'female', 'other']),
   
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
+
+
+
+
+
+
+
+
+
+
+
 
 const updateRiderZodSchema = z.object({
   fullName: z.string().optional(),

@@ -8,6 +8,7 @@ import { FaqRoutes } from '../modules/FAQ/faq.routes';
 import { ContactRoutes } from '../modules/ContactUs/contact.route';
 import { DeliveryQuoteRoutes } from '../modules/deliveryQuote/deliveryQuote.routes';
 import { OrderRoutes } from '../modules/Order/order.routes';
+import { RiderRoutes } from '../modules/rider/rider.routes';
 
 
 
@@ -24,6 +25,10 @@ const moduleRoutes = [
   {
     path: '/user',
     route:UserRoutes
+  },
+  {
+    path: '/rider',
+    route:RiderRoutes
   },
   {
     path: '/about',
