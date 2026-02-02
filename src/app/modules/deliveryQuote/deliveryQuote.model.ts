@@ -1,43 +1,28 @@
 import { Schema, model } from 'mongoose';
-import { IDeliveryQuote, IDropOff } from './deliveryQuote.interface';
+import { IDeliveryQuote } from './deliveryQuote.interface';
 
-const dropOffSchema = new Schema<IDropOff>({
+const dropOffSchema = new Schema({
   receiverName: { type: String, required: true },
   receiverPhone: { type: String, required: true },
   receiverAddress: { type: String, required: true },
   packageName: { type: String, required: true },
-  quantity: { type: Number, required: true, default: 1 },
+  quantity: { type: Number, required: true },
   weight: { type: String, required: true },
-  additionalDetails: { type: String },
+  status: { type: String, enum: ['pending', 'trip started', 'delivered'], default: 'pending' },
+  deliveryProofImg: String,
+  signatureImg: String,
+  deliveredAt: Date,
 });
 
-const deliveryQuoteSchema = new Schema<IDeliveryQuote>(
-  {
-    rider: {
-      type: Schema.Types.ObjectId,
-      ref: 'Rider',
-      required: true,
-    },
-    pickupLocation: {
-      type: String,
-      required: true,
-    },
-    dropOffs: {
-      type: [dropOffSchema],
-      validate: [(val:any) => val.length > 0, 'At least one drop-off destination is required'],
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'accepted', 'in-transit', 'delivered', 'cancelled'],
-      default: 'pending',
-    },
-    totalCost: {
-      type: Number,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
+const quoteSchema = new Schema<IDeliveryQuote>({
+  trackingId: { type: String, required: true, unique: true },
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  rider: { type: Schema.Types.ObjectId, ref: 'User' },
+  pickupLocation: { type: String, required: true },
+  dropOffs: [dropOffSchema],
+  status: { type: String, enum: ['pending', 'req accepted', 'percel picked', 'delivered'], default: 'pending' },
+  timeline: [{ status: String, message: String, time: { type: Date, default: Date.now } }],
+  paymentInfo: { totalDistance: String, charge: Number },
+}, { timestamps: true });
 
-export const DeliveryQuote = model<IDeliveryQuote>('DeliveryQuote', deliveryQuoteSchema);
+export const DeliveryQuote = model<IDeliveryQuote>('DeliveryQuote', quoteSchema);

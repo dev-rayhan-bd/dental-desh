@@ -32,7 +32,7 @@ const userSchema = new Schema<TUser, User, IUserMethods>(
  role: { 
   type: String, 
   required: true, 
-  enum: ["user", "driver", "superAdmin"], 
+  enum: ["user", "superAdmin"], 
   default: "user" 
 },
     fcmToken: { type: String, required: true },

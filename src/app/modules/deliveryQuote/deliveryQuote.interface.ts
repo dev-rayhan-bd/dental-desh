@@ -7,13 +7,28 @@ export interface IDropOff {
   packageName: string;
   quantity: number;
   weight: string;
-  additionalDetails?: string;
+  status: 'pending' | 'trip started' | 'delivered';
+  deliveryProofImg?: string;
+  signatureImg?: string;
+  deliveredAt?: Date;
+}
+
+export interface ITimeline {
+  status: string;
+  message: string;
+  time: Date;
 }
 
 export interface IDeliveryQuote {
-  rider: Types.ObjectId; // Reference to Rider
+  trackingId: string;
+  user: Types.ObjectId;
+  rider?: Types.ObjectId;
   pickupLocation: string;
-  dropOffs: IDropOff[]; // Supports destination 1, 2, 3...
-  status: 'pending' | 'accepted' | 'in-transit' | 'delivered' | 'cancelled';
-  totalCost?: number;
+  dropOffs: IDropOff[];
+  status: 'pending' | 'req accepted' | 'percel picked' | 'delivered';
+  timeline: ITimeline[];
+  paymentInfo: {
+    totalDistance: string;
+    charge: number;
+  };
 }

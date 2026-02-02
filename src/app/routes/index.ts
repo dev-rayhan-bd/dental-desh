@@ -6,6 +6,8 @@ import privacyPolicyRouter from '../modules/PrivacyPolicy/privacyPolicy.routes';
 import termsRouter from '../modules/Terms/terms.route';
 import { FaqRoutes } from '../modules/FAQ/faq.routes';
 import { ContactRoutes } from '../modules/ContactUs/contact.route';
+import { DeliveryQuoteRoutes } from '../modules/deliveryQuote/deliveryQuote.routes';
+import { OrderRoutes } from '../modules/Order/order.routes';
 
 
 
@@ -43,7 +45,14 @@ const moduleRoutes = [
     path: '/contact',
     route:ContactRoutes
   },
-
+{
+  path: '/delivery-quote',
+  route: DeliveryQuoteRoutes
+},
+{
+  path: '/order',
+  route: OrderRoutes
+}
 
 ];
 
