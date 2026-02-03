@@ -41,7 +41,7 @@ export interface IDeliveryQuote {
   rider?: Types.ObjectId;
   pickupLocation: IAddress;
   dropOffs: IDropOff[];
-  status: 'pending' | 'req accepted' | 'percel picked' | 'delivered';
+  status: 'pending' | 'req accepted' |'trip started'| 'percel picked' | 'delivered';
   timeline: ITimeline[];
   paymentInfo: {
 

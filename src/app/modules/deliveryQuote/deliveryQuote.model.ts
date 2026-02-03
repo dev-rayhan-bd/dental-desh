@@ -34,7 +34,7 @@ const dropOffSchema = new Schema({
 const quoteSchema = new Schema<IDeliveryQuote>({
   trackingId: { type: String, required: true, unique: true },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  rider: { type: Schema.Types.ObjectId, ref: 'User' },
+  rider: { type: Schema.Types.ObjectId, ref: 'Rider' },
   pickupLocation: { type: addressSchema, required: true },
   dropOffs: [dropOffSchema],
   status: { type: String, enum: ['pending', 'req accepted', 'percel picked', 'delivered'], default: 'pending' },

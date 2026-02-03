@@ -41,39 +41,78 @@ const getSingleQuoteFromDB = async (id: string) => {
   if (!result) throw new AppError(httpStatus.NOT_FOUND, "Quote not found");
   return result;
 };
-// updateParcelStatusInDB
+
+const acceptJobInDB = async (quoteId: string, riderId: string) => {
+  const quote = await DeliveryQuote.findById(quoteId);
+  if (!quote) throw new AppError(httpStatus.NOT_FOUND, "Job not found");
+  if (quote.rider) throw new AppError(httpStatus.BAD_REQUEST, "Job already accepted by another rider");
+
+  const result = await DeliveryQuote.findByIdAndUpdate(
+    quoteId,
+    {
+      $set: { rider: riderId, status: 'req accepted' },
+      $push: { 
+        timeline: { 
+          status: 'req accepted', 
+          message: 'Rider has accepted your request.', 
+          time: new Date() 
+        } 
+      }
+    },
+    { new: true }
+  );
+  return result;
+};
+
 const updateParcelStatusInDB = async (quoteId: string, index: number, payload: any) => {
   const quote = await DeliveryQuote.findById(quoteId);
   if (!quote) throw new AppError(httpStatus.NOT_FOUND, "Quote not found");
 
-
+ 
   if (index === -1) {
-    const result = await DeliveryQuote.findByIdAndUpdate(
+    if (payload.status === 'percel picked') {
+
+      if (quote.status !== 'req accepted') {
+        throw new AppError(httpStatus.BAD_REQUEST, `Cannot pick parcel now. Current status: ${quote.status}`);
+      }
+    }
+    
+
+    if (quote.status === payload.status) {
+      throw new AppError(httpStatus.BAD_REQUEST, `Status is already ${payload.status}`);
+    }
+
+    return await DeliveryQuote.findByIdAndUpdate(
       quoteId,
       {
         $set: { status: payload.status },
-        $push: { 
-          timeline: { 
-            status: payload.status, 
-            message: payload.message || `Order status updated to ${payload.status}`, 
-            time: new Date() 
-          } 
-        }
+        $push: { timeline: { status: payload.status, message: payload.message, time: new Date() } }
       },
       { new: true }
     );
-    return result;
+  }
+
+
+  const parcel = quote.dropOffs[index];
+  if (!parcel) throw new AppError(httpStatus.NOT_FOUND, "Specific parcel not found");
+
+ 
+  if (quote.status !== 'percel picked' && quote.status !== 'trip started') {
+     throw new AppError(httpStatus.BAD_REQUEST, "Must pick up all parcels before starting individual trips");
+  }
+
+  if (parcel.status === payload.status) {
+    throw new AppError(httpStatus.BAD_REQUEST, `This parcel is already ${payload.status}`);
+  }
+
+
+  if (payload.status === 'delivered' && parcel.status !== 'trip started') {
+    throw new AppError(httpStatus.BAD_REQUEST, "You must start the trip before marking it as delivered");
   }
 
   const updateFields: any = {
     [`dropOffs.${index}.status`]: payload.status,
-    $push: { 
-      timeline: { 
-        status: payload.status, 
-        message: payload.message || `Parcel ${index + 1} ${payload.status}`, 
-        time: new Date() 
-      } 
-    }
+    $push: { timeline: { status: payload.status, message: payload.message, time: new Date() } }
   };
 
   if (payload.status === 'delivered') {
@@ -84,7 +123,7 @@ const updateParcelStatusInDB = async (quoteId: string, index: number, payload: a
 
   const result = await DeliveryQuote.findByIdAndUpdate(quoteId, updateFields, { new: true });
 
-
+  
   const isAllDelivered = result?.dropOffs.every(d => d.status === 'delivered');
   if (isAllDelivered) {
     await DeliveryQuote.findByIdAndUpdate(quoteId, { status: 'delivered' });
@@ -97,11 +136,11 @@ const updateParcelStatusInDB = async (quoteId: string, index: number, payload: a
   }
   return result;
 };
-
 export const DeliveryQuoteService = {
   createQuoteIntoDB,
   getAllQuotesFromDB,
   getMyQuotesFromDB,
   getSingleQuoteFromDB,
-  updateParcelStatusInDB
+  updateParcelStatusInDB,
+  acceptJobInDB
 };

@@ -15,6 +15,19 @@ router.get('/my-quotes', auth('user'), DeliveryQuoteController.getMyQuotes);
 
 router.get('/single/:id', auth('user', 'driver', 'superAdmin'), DeliveryQuoteController.getSingleQuote);
 
-router.patch('/update-status/:id/:index', auth('driver'), upload.fields([{ name: 'deliveryProofImg' }, { name: 'signatureImg' }]), DeliveryQuoteController.updateParcelStatus);
+
+router.patch('/accept-job/:id', auth('driver'), DeliveryQuoteController.acceptJob);
+
+
+router.patch(
+  '/update-status/:id/:index', 
+  auth('driver'), 
+  upload.fields([{ name: 'deliveryProofImg' }, { name: 'signatureImg' }]), 
+  (req, res, next) => {
+    if (req.body.body) req.body = JSON.parse(req.body.body);
+    next();
+  },
+  DeliveryQuoteController.updateParcelStatus
+);
 
 export const DeliveryQuoteRoutes = router;
