@@ -2,6 +2,7 @@ import { Order } from './order.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
+import { DeliveryQuote } from '../deliveryQuote/deliveryQuote.model';
 
 
 const getAllOrdersFromDB = async (query: Record<string, unknown>) => {
@@ -45,11 +46,36 @@ const getMyOrdersFromDB = async (userId: string, query: Record<string, unknown>)
 
 
 const trackOrderByIDFromDB = async (trackingId: string) => {
-  const result = await Order.findOne({ trackingId }).populate('rider user');
-  if (!result) throw new AppError(httpStatus.NOT_FOUND, "Order not found with this tracking ID");
-  return result;
-};
 
+  
+  let result: any = await DeliveryQuote.findOne({ trackingId })
+    .populate('rider', 'fullName image') 
+    .select('trackingId timeline rider')
+    .lean();
+
+
+  if (!result) {
+    result = await Order.findOne({ trackingId })
+      .populate('rider', 'fullName image')
+      .select('trackingId timeline rider')
+      .lean();
+  }
+
+  if (!result) throw new AppError(404, "Invalid Tracking ID");
+
+
+  const cleanTimeline = result.timeline?.map((item: any) => ({
+    status: item.status,
+    message: item.message,
+    time: item.time
+  })) || [];
+
+  return {
+    trackingId: result.trackingId,
+    rider: result.rider || { fullName: "Assigning...", image: null },
+    timeline: cleanTimeline
+  };
+};
 
 const getSingleOrderFromDB = async (id: string) => {
   const result = await Order.findById(id).populate('rider user');

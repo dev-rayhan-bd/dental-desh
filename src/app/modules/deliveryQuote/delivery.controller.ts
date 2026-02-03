@@ -33,7 +33,7 @@ const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
     payload.deliveryProofImg = await uploadImage(req, files.deliveryProofImg[0]);
     payload.signatureImg = await uploadImage(req, files.signatureImg[0]);
   }
-  const result = await DeliveryQuoteService.updateStatusInDB(id as string, Number(index), payload);
+  const result = await DeliveryQuoteService.updateParcelStatusInDB(id as string, Number(index), payload);
   sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Status updated', data: result });
 });
 

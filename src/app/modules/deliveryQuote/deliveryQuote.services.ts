@@ -41,29 +41,58 @@ const getSingleQuoteFromDB = async (id: string) => {
   if (!result) throw new AppError(httpStatus.NOT_FOUND, "Quote not found");
   return result;
 };
+// updateParcelStatusInDB
+const updateParcelStatusInDB = async (quoteId: string, index: number, payload: any) => {
+  const quote = await DeliveryQuote.findById(quoteId);
+  if (!quote) throw new AppError(httpStatus.NOT_FOUND, "Quote not found");
 
-const updateStatusInDB = async (id: string, index: number, payload: any) => {
-  const updateData: any = {
+
+  if (index === -1) {
+    const result = await DeliveryQuote.findByIdAndUpdate(
+      quoteId,
+      {
+        $set: { status: payload.status },
+        $push: { 
+          timeline: { 
+            status: payload.status, 
+            message: payload.message || `Order status updated to ${payload.status}`, 
+            time: new Date() 
+          } 
+        }
+      },
+      { new: true }
+    );
+    return result;
+  }
+
+  const updateFields: any = {
     [`dropOffs.${index}.status`]: payload.status,
-    $push: { timeline: { status: payload.status, message: payload.message || `Parcel ${index} updated`, time: new Date() } }
+    $push: { 
+      timeline: { 
+        status: payload.status, 
+        message: payload.message || `Parcel ${index + 1} ${payload.status}`, 
+        time: new Date() 
+      } 
+    }
   };
 
   if (payload.status === 'delivered') {
-    updateData[`dropOffs.${index}.deliveryProofImg`] = payload.deliveryProofImg;
-    updateData[`dropOffs.${index}.signatureImg`] = payload.signatureImg;
-    updateData[`dropOffs.${index}.deliveredAt`] = new Date();
+    updateFields[`dropOffs.${index}.deliveryProofImg`] = payload.deliveryProofImg;
+    updateFields[`dropOffs.${index}.signatureImg`] = payload.signatureImg;
+    updateFields[`dropOffs.${index}.deliveredAt`] = new Date();
   }
 
-  const result = await DeliveryQuote.findByIdAndUpdate(id, updateData, { new: true });
-  
+  const result = await DeliveryQuote.findByIdAndUpdate(quoteId, updateFields, { new: true });
 
-  if (result?.dropOffs.every(d => d.status === 'delivered')) {
-    await DeliveryQuote.findByIdAndUpdate(id, { status: 'delivered' });
-    const finalData = await DeliveryQuote.findById(id).lean();
+
+  const isAllDelivered = result?.dropOffs.every(d => d.status === 'delivered');
+  if (isAllDelivered) {
+    await DeliveryQuote.findByIdAndUpdate(quoteId, { status: 'delivered' });
+    const finalData = await DeliveryQuote.findById(quoteId).lean();
     if (finalData) {
-      const { _id, ...orderRest } = finalData;
-      await Order.create({ ...orderRest, completedAt: new Date() });
-      await DeliveryQuote.findByIdAndDelete(id);
+      const { _id, ...orderData } = finalData;
+      await Order.create({ ...orderData, completedAt: new Date() });
+      await DeliveryQuote.findByIdAndDelete(quoteId);
     }
   }
   return result;
@@ -74,5 +103,5 @@ export const DeliveryQuoteService = {
   getAllQuotesFromDB,
   getMyQuotesFromDB,
   getSingleQuoteFromDB,
-  updateStatusInDB
+  updateParcelStatusInDB
 };
