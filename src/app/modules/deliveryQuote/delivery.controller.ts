@@ -5,54 +5,36 @@ import httpStatus from 'http-status';
 import { DeliveryQuoteService } from './deliveryQuote.services';
 import uploadImage from '../../middleware/upload';
 
-
-
-const createDeliveryQuote = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.userId; 
-  const payload = {
-    ...req.body,
-    user: userId, 
-  };
-
-  const result = await DeliveryQuoteService.createDeliveryQuoteIntoDB(payload);
-
-  sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'Delivery quote created successfully!',
-    data: result,
-  });
+const createQuote = catchAsync(async (req: Request, res: Response) => {
+  const result = await DeliveryQuoteService.createQuoteIntoDB({ ...req.body, user: req.user.userId });
+  sendResponse(res, { statusCode: httpStatus.CREATED, success: true, message: 'Created', data: result });
 });
 
+const getAllQuotes = catchAsync(async (req: Request, res: Response) => {
+  const result = await DeliveryQuoteService.getAllQuotesFromDB(req.query);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, data: result });
+});
 
+const getMyQuotes = catchAsync(async (req: Request, res: Response) => {
+  const result = await DeliveryQuoteService.getMyQuotesFromDB(req.user.userId, req.query);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, data: result });
+});
 
-
-
-
+const getSingleQuote = catchAsync(async (req: Request, res: Response) => {
+  const result = await DeliveryQuoteService.getSingleQuoteFromDB(req.params.id as string);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, data: result });
+});
 
 const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
   const { id, index } = req.params;
-  const { status, message } = req.body;
-  const payload: any = { status, message };
-
-  if (status === 'delivered') {
+  const payload = { ...req.body };
+  if (req.body.status === 'delivered') {
     const files = req.files as any;
-    if (files?.deliveryProofImg) {
-        payload.deliveryProofImg = await uploadImage(req, files.deliveryProofImg[0]);
-    }
-    if (files?.signatureImg) {
-        payload.signatureImg = await uploadImage(req, files.signatureImg[0]);
-    }
+    payload.deliveryProofImg = await uploadImage(req, files.deliveryProofImg[0]);
+    payload.signatureImg = await uploadImage(req, files.signatureImg[0]);
   }
-
-  const result = await DeliveryQuoteService.updateParcelStatusInDB(id as string, Number(index), payload);
-
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Status updated successfully',
-    data: result,
-  });
+  const result = await DeliveryQuoteService.updateStatusInDB(id as string, Number(index), payload);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Status updated', data: result });
 });
 
-export const DeliveryQuoteController = { createDeliveryQuote,updateParcelStatus };
+export const DeliveryQuoteController = { createQuote, getAllQuotes, getMyQuotes, getSingleQuote, updateParcelStatus };

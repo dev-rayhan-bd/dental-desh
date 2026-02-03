@@ -1,9 +1,25 @@
 import { Types } from 'mongoose';
 
+
+
+export interface IAddress {
+  formattedAddress: string; //map address (House 32, Road 11, Dhanmondi, Dhaka 1209)
+//   House No / Flat / Floor (Optional)
+  houseNo?: string;   
+
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+}
+
+
+
+
 export interface IDropOff {
   receiverName: string;
   receiverPhone: string;
-  receiverAddress: string;
+  receiverAddress: IAddress; 
   packageName: string;
   quantity: number;
   weight: string;
@@ -23,12 +39,12 @@ export interface IDeliveryQuote {
   trackingId: string;
   user: Types.ObjectId;
   rider?: Types.ObjectId;
-  pickupLocation: string;
+  pickupLocation: IAddress;
   dropOffs: IDropOff[];
   status: 'pending' | 'req accepted' | 'percel picked' | 'delivered';
   timeline: ITimeline[];
   paymentInfo: {
-    totalDistance: string;
-    charge: number;
+
+    deliveryCharge: number;
   };
 }

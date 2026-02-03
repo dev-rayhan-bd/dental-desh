@@ -1,10 +1,26 @@
-import QueryBuilder from '../../builder/QueryBuilder';
 import { Order } from './order.model';
+import QueryBuilder from '../../builder/QueryBuilder';
+import httpStatus from 'http-status';
+import AppError from '../../errors/AppError';
 
-const getAllOrdersFromDB = async (userId: string, query: Record<string, unknown>) => {
 
+const getAllOrdersFromDB = async (query: Record<string, unknown>) => {
+  const orderQuery = new QueryBuilder(Order.find().populate('user rider'), query)
+    .search(['trackingId', 'pickupLocation.formattedAddress'])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
+
+  const result = await orderQuery.modelQuery;
+  const meta = await orderQuery.countTotal();
+  return { meta, result };
+};
+
+const getMyOrdersFromDB = async (userId: string, query: Record<string, unknown>) => {
   const orderQueryObj: any = { ...query, user: userId };
 
+ 
   if (query.date) {
     const start = new Date(query.date as string);
     const end = new Date(query.date as string);
@@ -14,31 +30,36 @@ const getAllOrdersFromDB = async (userId: string, query: Record<string, unknown>
   }
 
 
-  if (query.status === 'current') {
-    orderQueryObj.status = { $in: ['req accepted', 'percel picked', 'trip started'] };
-  } else if (query.status === 'upcoming') {
-    orderQueryObj.status = 'pending';
-  }
 
 
-  const orderQuery = new QueryBuilder(
-    Order.find().populate('rider').populate('user'), 
-    orderQueryObj
-  )
+  const orderQuery = new QueryBuilder(Order.find().populate('rider'), orderQueryObj)
     .search(['trackingId'])
     .filter()
-    .sort() 
-    .paginate()
-    .fields();
+    .sort()
+    .paginate();
 
   const result = await orderQuery.modelQuery;
   const meta = await orderQuery.countTotal();
-
   return { meta, result };
 };
-const trackOrderByTrackingID = async (trackingId: string) => {
 
-  return await Order.findOne({ trackingId }).populate('rider');
+
+const trackOrderByIDFromDB = async (trackingId: string) => {
+  const result = await Order.findOne({ trackingId }).populate('rider user');
+  if (!result) throw new AppError(httpStatus.NOT_FOUND, "Order not found with this tracking ID");
+  return result;
 };
 
-export const OrderService = { getAllOrdersFromDB, trackOrderByTrackingID };
+
+const getSingleOrderFromDB = async (id: string) => {
+  const result = await Order.findById(id).populate('rider user');
+  if (!result) throw new AppError(httpStatus.NOT_FOUND, "Order details not found");
+  return result;
+};
+
+export const OrderService = {
+  getAllOrdersFromDB,
+  getMyOrdersFromDB,
+  trackOrderByIDFromDB,
+  getSingleOrderFromDB
+};

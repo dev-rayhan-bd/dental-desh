@@ -31,11 +31,13 @@ router.get(
 router.get(
   '/all',
  
-  auth(USER_ROLE.superAdmin),
+  auth(USER_ROLE.superAdmin,USER_ROLE.driver,USER_ROLE.user),
   RiderController.getAllUser,
 );
 
 router.delete('/delete-profile',auth(USER_ROLE.superAdmin,USER_ROLE.user),RiderController.deleteProfile);
+
+
 
 
 

@@ -1,30 +1,20 @@
-import express from 'express';
+import { Router } from 'express';
 import auth from '../../middleware/auth';
-
-import { upload } from '../../middleware/multer';
 import { DeliveryQuoteController } from './delivery.controller';
-import { USER_ROLE } from '../Auth/auth.constant';
+import { upload } from '../../middleware/multer';
 import validateRequest from '../../middleware/validateRequest';
 import { DeliveryQuoteValidation } from './deliveryQuote.validation';
 
-const router = express.Router();
+const router = Router();
 
-router.post(
-  '/create',
-  auth(USER_ROLE.user),
-  validateRequest(DeliveryQuoteValidation.createDeliveryQuoteZodSchema),
-  DeliveryQuoteController.createDeliveryQuote
-);
+router.post('/create', auth('user'), validateRequest(DeliveryQuoteValidation.createDeliveryQuoteZodSchema), DeliveryQuoteController.createQuote);
 
-router.patch(
-  '/update-status/:id/:index',
-  auth('driver'), // rider/driver role
-  upload.fields([
-    { name: 'deliveryProofImg', maxCount: 1 },
-    { name: 'signatureImg', maxCount: 1 }
-  ]),
-    // validateRequest(DeliveryQuoteValidation.createDeliveryQuoteZodSchema),
-  DeliveryQuoteController.updateParcelStatus
-);
+router.get('/all-quotes', auth('superAdmin', 'driver'), DeliveryQuoteController.getAllQuotes);
+
+router.get('/my-quotes', auth('user'), DeliveryQuoteController.getMyQuotes); 
+
+router.get('/single/:id', auth('user', 'driver', 'superAdmin'), DeliveryQuoteController.getSingleQuote);
+
+router.patch('/update-status/:id/:index', auth('driver'), upload.fields([{ name: 'deliveryProofImg' }, { name: 'signatureImg' }]), DeliveryQuoteController.updateParcelStatus);
 
 export const DeliveryQuoteRoutes = router;

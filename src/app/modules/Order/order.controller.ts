@@ -4,29 +4,24 @@ import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import { OrderService } from './order.services';
 
-const getMyOrders = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.userId;
-  
-  // Passes userId and query params (date, status, search, etc.) to service
-  const result = await OrderService.getAllOrdersFromDB(userId, req.query);
+const getAllOrders = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.getAllOrdersFromDB(req.query);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'All orders retrieved', data: result });
+});
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Orders retrieved successfully!',
-    data: result,
-  });
+const getMyOrders = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.getMyOrdersFromDB(req.user.userId, req.query);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Your orders retrieved', data: result });
 });
 
 const trackOrder = catchAsync(async (req: Request, res: Response) => {
-  const { trackingId } = req.params;
-  const result = await OrderService.trackOrderByTrackingID(trackingId as string);
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Order tracking details',
-    data: result,
-  });
+  const result = await OrderService.trackOrderByIDFromDB(req.params.trackingId as string);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Tracking data retrieved', data: result });
 });
 
-export const OrderController = { getMyOrders, trackOrder };
+const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.getSingleOrderFromDB(req.params.id as string);
+  sendResponse(res, { statusCode: httpStatus.OK, success: true, message: 'Order details retrieved', data: result });
+});
+
+export const OrderController = { getAllOrders, getMyOrders, trackOrder, getSingleOrder };
