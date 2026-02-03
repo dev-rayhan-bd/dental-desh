@@ -1,5 +1,5 @@
 import { Query } from 'mongoose';
-
+import mongoose from 'mongoose'; 
 class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;
   public query: Record<string, unknown>;
@@ -21,68 +21,106 @@ class QueryBuilder<T> {
     return this;
   }
 
-  filter() {
-    const queryObj: Record<string, unknown> = { ...this.query };
-    const exclude = ['search', 'sort', 'limit', 'page', 'fields'];
-    exclude.forEach((k) => delete queryObj[k]);
+  // filter() {
+  //   const queryObj: Record<string, unknown> = { ...this.query };
+  //   const exclude = ['search', 'sort', 'limit', 'page', 'fields'];
+  //   exclude.forEach((k) => delete queryObj[k]);
 
-    const mongo: Record<string, unknown> = {};
+  //   const mongo: Record<string, unknown> = {};
 
-    for (const [key, raw] of Object.entries(queryObj)) {
-      if (raw == null || (typeof raw === 'string' && raw.trim() === '')) continue;
+  //   for (const [key, raw] of Object.entries(queryObj)) {
+  //     if (raw == null || (typeof raw === 'string' && raw.trim() === '')) continue;
 
-      if (key === 'availability') {
-        const date = typeof raw === 'string' ? raw : (raw as string[])[0];
-        if (date) {
-          mongo['availability.start'] = { $lte: date };
-          mongo['availability.end'] = { $gte: date };
-        }
-        continue;
-      }
+  //     if (key === 'availability') {
+  //       const date = typeof raw === 'string' ? raw : (raw as string[])[0];
+  //       if (date) {
+  //         mongo['availability.start'] = { $lte: date };
+  //         mongo['availability.end'] = { $gte: date };
+  //       }
+  //       continue;
+  //     }
 
-      if (key === 'max_adult' || key === 'child_min_age') {
-        const value = Number(raw);
-        if (isNaN(value)) {
-          throw new Error(`Invalid value for ${key}. Expected a number, got "${raw}".`);
-        }
-        mongo[key] = { $gte: value };
-        continue;
-      }
+  //     if (key === 'max_adult' || key === 'child_min_age') {
+  //       const value = Number(raw);
+  //       if (isNaN(value)) {
+  //         throw new Error(`Invalid value for ${key}. Expected a number, got "${raw}".`);
+  //       }
+  //       mongo[key] = { $gte: value };
+  //       continue;
+  //     }
 
-      if (typeof raw === 'string') {
-        if (/^(true|false)$/i.test(raw)) {
-          mongo[key] = /^true$/i.test(raw);
-          continue;
-        }
-        mongo[key] = {
-          $regex: raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-          $options: 'i',
-        };
-      } else {
-        mongo[key] = raw;
-      }
+  //     if (typeof raw === 'string') {
+  //       if (/^(true|false)$/i.test(raw)) {
+  //         mongo[key] = /^true$/i.test(raw);
+  //         continue;
+  //       }
+  //       mongo[key] = {
+  //         $regex: raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+  //         $options: 'i',
+  //       };
+  //     } else {
+  //       mongo[key] = raw;
+  //     }
+  //   }
+
+  //   this.modelQuery = this.modelQuery.find(mongo as any);  
+  //   return this;
+  // }
+
+
+
+filter() {
+  const queryObj: Record<string, unknown> = { ...this.query };
+  const exclude = ['search', 'sort', 'limit', 'page', 'fields'];
+  exclude.forEach((k) => delete queryObj[k]);
+
+  const mongo: Record<string, unknown> = {};
+
+  for (const [key, raw] of Object.entries(queryObj)) {
+    if (raw == null || (typeof raw === 'string' && raw.trim() === '')) continue;
+
+
+    if (typeof raw === 'string' && mongoose.Types.ObjectId.isValid(raw)) {
+      mongo[key] = raw;
+      continue;
     }
 
-    this.modelQuery = this.modelQuery.find(mongo as any);  
-    return this;
+    if (key === 'availability') {
+      const date = typeof raw === 'string' ? raw : (raw as string[])[0];
+      if (date) {
+        mongo['availability.start'] = { $lte: date };
+        mongo['availability.end'] = { $gte: date };
+      }
+      continue;
+    }
+
+    if (key === 'max_adult' || key === 'child_min_age') {
+      const value = Number(raw);
+      if (isNaN(value)) {
+        throw new Error(`Invalid value for ${key}. Expected a number, got "${raw}".`);
+      }
+      mongo[key] = { $gte: value };
+      continue;
+    }
+
+    if (typeof raw === 'string') {
+      if (/^(true|false)$/i.test(raw)) {
+        mongo[key] = /^true$/i.test(raw);
+        continue;
+      }
+
+      mongo[key] = {
+        $regex: raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+        $options: 'i',
+      };
+    } else {
+      mongo[key] = raw;
+    }
   }
 
-// sort(field: string = 'createdAt', order: 1 | -1 = -1) {
-//   let sortField: string | { [key: string]: 1 | -1 } = this.query?.sort as string || `${field}`;
-
-//   // Check if 'price' is part of the query or use the provided field
-//   if (this.query?.price) {
-//     const priceSort = this.query.price === 'asc' ? 1 : -1;
-//     sortField = { price: priceSort }; // Sort by price
-//   } else {
-//     sortField = { [field]: order }; // Use dynamic sorting by the provided field (default to 'createdAt')
-//   }
-
-//   // Apply sort
-//   this.modelQuery = this.modelQuery.sort(sortField);
-
-//   return this;
-// }
+  this.modelQuery = this.modelQuery.find(mongo as any);  
+  return this;
+}
 
 sort(field: string = 'createdAt', order: 1 | -1 = -1) {
   // Handle case where sort could be string or string[]
