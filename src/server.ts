@@ -23,7 +23,8 @@ async function main() {
       cors: {
         origin: "*", 
         methods: ["GET", "POST"]
-      }
+      },
+       transports: ['websocket', 'polling']
     });
 
 
