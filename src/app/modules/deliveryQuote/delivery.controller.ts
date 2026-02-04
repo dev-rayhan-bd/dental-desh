@@ -41,36 +41,36 @@ const acceptJob = catchAsync(async (req: Request, res: Response) => {
 });
 
 
-const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
-  const { id, index } = req.params;
-  const payload = { ...req.body };
+// const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
+//   const { id, index } = req.params;
+//   const payload = { ...req.body };
 
 
-  if (payload.status === 'delivered') {
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+//   if (payload.status === 'delivered') {
+//     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
 
-    if (!files?.deliveryProofImg || !files.deliveryProofImg[0]) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Delivery proof image is required to complete delivery");
-    }
+//     if (!files?.deliveryProofImg || !files.deliveryProofImg[0]) {
+//       throw new AppError(httpStatus.BAD_REQUEST, "Delivery proof image is required to complete delivery");
+//     }
 
-    if (!files?.signatureImg || !files.signatureImg[0]) {
-      throw new AppError(httpStatus.BAD_REQUEST, "Customer signature is required to complete delivery");
-    }
+//     if (!files?.signatureImg || !files.signatureImg[0]) {
+//       throw new AppError(httpStatus.BAD_REQUEST, "Customer signature is required to complete delivery");
+//     }
 
-    payload.deliveryProofImg = await uploadImage(req, files.deliveryProofImg[0]);
-    payload.signatureImg = await uploadImage(req, files.signatureImg[0]);
-  }
+//     payload.deliveryProofImg = await uploadImage(req, files.deliveryProofImg[0]);
+//     payload.signatureImg = await uploadImage(req, files.signatureImg[0]);
+//   }
 
 
-  const result = await DeliveryQuoteService.updateParcelStatusInDB(id as string, Number(index), payload);
+//   const result = await DeliveryQuoteService.updateParcelStatusInDB(id as string, Number(index), payload);
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: 'Status updated successfully',
-    data: result,
-  });
-});
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: 'Status updated successfully',
+//     data: result,
+//   });
+// });
 
-export const DeliveryQuoteController = { createQuote, getAllQuotes, getMyQuotes, getSingleQuote, updateParcelStatus ,acceptJob};
+export const DeliveryQuoteController = { createQuote, getAllQuotes, getMyQuotes, getSingleQuote,acceptJob};

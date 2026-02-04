@@ -45,37 +45,17 @@ const getMyOrdersFromDB = async (userId: string, query: Record<string, unknown>)
 };
 
 
+
 const trackOrderByIDFromDB = async (trackingId: string) => {
 
-  
-  let result: any = await DeliveryQuote.findOne({ trackingId })
-    .populate('rider', 'fullName image') 
-    .select('trackingId timeline rider')
-    .lean();
-
-
-  if (!result) {
-    result = await Order.findOne({ trackingId })
-      .populate('rider', 'fullName image')
-      .select('trackingId timeline rider')
-      .lean();
-  }
+  const result = await Order.findOne({ trackingId })
+    .populate('rider', 'fullName image contact')
+    .select('trackingId status timeline rider ');
 
   if (!result) throw new AppError(404, "Invalid Tracking ID");
-
-
-  const cleanTimeline = result.timeline?.map((item: any) => ({
-    status: item.status,
-    message: item.message,
-    time: item.time
-  })) || [];
-
-  return {
-    trackingId: result.trackingId,
-    rider: result.rider || { fullName: "Assigning...", image: null },
-    timeline: cleanTimeline
-  };
+  return result;
 };
+
 
 const getSingleOrderFromDB = async (id: string) => {
   const result = await Order.findById(id).populate('rider user');
@@ -83,9 +63,56 @@ const getSingleOrderFromDB = async (id: string) => {
   return result;
 };
 
+
+
+
+const updateOrderStatusInDB = async (orderId: string, index: number, payload: any) => {
+  const order = await Order.findById(orderId);
+  if (!order) throw new AppError(404, "Order not found");
+
+
+  if (index === -1) {
+    return await Order.findByIdAndUpdate(
+      orderId,
+      {
+        $set: { status: payload.status },
+        $push: { timeline: { status: payload.status, message: payload.message, time: new Date() } }
+      },
+      { new: true }
+    );
+  }
+
+  //  (trip started, delivered)
+  const updateFields: any = {
+    [`dropOffs.${index}.status`]: payload.status,
+    $push: { timeline: { status: payload.status, message: payload.message, time: new Date() } }
+  };
+
+  if (payload.status === 'delivered') {
+    updateFields[`dropOffs.${index}.deliveryProofImg`] = payload.deliveryProofImg;
+    updateFields[`dropOffs.${index}.signatureImg`] = payload.signatureImg;
+    updateFields[`dropOffs.${index}.deliveredAt`] = new Date();
+  }
+
+  const result = await Order.findByIdAndUpdate(orderId, updateFields, { new: true });
+
+
+  if (result?.dropOffs.every(d => d.status === 'delivered')) {
+    await Order.findByIdAndUpdate(orderId, { status: 'delivered', completedAt: new Date() });
+  }
+
+  return result;
+};
+
+
+
+
+
+
 export const OrderService = {
   getAllOrdersFromDB,
   getMyOrdersFromDB,
   trackOrderByIDFromDB,
-  getSingleOrderFromDB
+  getSingleOrderFromDB,
+  updateOrderStatusInDB
 };
