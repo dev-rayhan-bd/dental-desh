@@ -6,6 +6,7 @@ import httpStatus from 'http-status';
 
 import QueryBuilder from "../../builder/QueryBuilder";
 import { Rider } from "./rider.model";
+import { Order } from "../Order/order.model";
 
 
 
@@ -50,12 +51,33 @@ const getAllUserFromDB = async (query: Record<string, unknown>) => {
 };
 
 
+const getNearbyRidersFromDB = async (lat: number, lng: number) => {
+  const riders = await Rider.find({
+    isAvailable: true, // online rider
+    lastLocation: {
+      $near: {
+        $geometry: { type: "Point", coordinates: [lng, lat] },
+        $maxDistance: 5000, // 5000 mtr or 5 km
+      },
+    },
+  }).select('fullName image lastLocation rating');
+
+  return riders;
+};
+
+const getRiderOrderHistory = async (riderId: string) => {
+
+  const result = await Order.find({ rider: riderId, status: 'delivered' })
+    .sort({ createdAt: -1 });
+
+  return result;
+};
 
 
 export const RiderServices = {
 
   getMyProfileFromDB,
   deletePrifileFromDB,
-  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB
+  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory
 
 };

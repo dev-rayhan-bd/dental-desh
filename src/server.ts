@@ -4,8 +4,10 @@ import app from './app';
 
 import mongoose from 'mongoose';
 import config from './app/config';
+import { Server as SocketServer } from 'socket.io';
+import { socketHelper } from './app/utils/socketHelper';
 
-// import { initializeSocket } from './socket';
+
 
 let server: Server;
 
@@ -16,8 +18,16 @@ async function main() {
     server = app.listen(config.port, () => {
       console.log(`app is listening on port ${config.port}`);
     });
+    // socket configaration
+ const io = new SocketServer(server, {
+      cors: {
+        origin: "*", 
+        methods: ["GET", "POST"]
+      }
+    });
 
-    // initializeSocket(server);
+
+    socketHelper(io);
   } catch (err) {
     console.log(err);
   }

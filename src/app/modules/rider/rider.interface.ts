@@ -2,15 +2,38 @@ import { Model } from "mongoose";
 import { TUser, IUserMethods, User } from "../User/user.interface";
 
 
+
+
+
+
+
 export interface IRider extends TUser {
+
   identificationNo: string;
+  
   vehicleType: 'car' | 'bike' | 'other';
   vehicleNumber: string;
   drivingLicense: string;
   vehicleImage: string;
+
   gender: 'male' | 'female' | 'other';
+  
   isAvailable: boolean;
+  // GeoJSON Format: [longitude, latitude]
+  lastLocation: {
+    type: "Point";
+    coordinates: [number, number]; 
+  };
+
+
+  wallet: number;         
+  totalEarnings: number;   
+  totalTrips: number;   
+  rating: number;       
+
 }
+
+
 
 
 export interface RiderModel extends Model<IRider, {}, IUserMethods> {

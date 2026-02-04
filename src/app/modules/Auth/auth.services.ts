@@ -584,6 +584,12 @@ const registerRiderIntoDB = async (payload: IRider) => {
   const result = await Rider.create({
     ...payload,
     _id: user._id, 
+       lastLocation: {
+      type: "Point",
+      coordinates: [0, 0] 
+    },
+    isAvailable: false, 
+
   });
 
 

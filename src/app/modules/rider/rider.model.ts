@@ -26,7 +26,18 @@ const riderSchema = new Schema<IRider, RiderModel, IUserMethods>(
     drivingLicense: { type: String, required: true },
     vehicleImage: { type: String, required: true },
     gender: { type: String, enum: ["male", "female", "other"], required: true },
-    isAvailable: { type: Boolean, default: true },
+    isAvailable: { type: Boolean, default: false },
+
+   lastLocation: {
+      type: { type: String, enum: ['Point'], default: 'Point' },
+      coordinates: { type: [Number], default: [0, 0] },
+    },
+
+  
+    wallet: { type: Number, default: 0 },
+    totalEarnings: { type: Number, default: 0 },
+    totalTrips: { type: Number, default: 0 },
+    rating: { type: Number, default: 0 }, 
   },
   { timestamps: true }
 );
