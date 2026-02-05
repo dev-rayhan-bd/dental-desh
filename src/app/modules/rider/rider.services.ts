@@ -74,10 +74,31 @@ const getRiderOrderHistory = async (riderId: string) => {
 };
 
 
+
+const toggleAvailabilityInDB = async (riderId: string) => {
+  const rider = await Rider.findById(riderId);
+  if (!rider) {
+    throw new AppError(404, "Rider not found!");
+  }
+
+
+  const result = await Rider.findByIdAndUpdate(
+    riderId,
+    { isAvailable: !rider.isAvailable },
+    { new: true }
+  );
+
+  return result;
+};
+
+
+
+
+
 export const RiderServices = {
 
   getMyProfileFromDB,
   deletePrifileFromDB,
-  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory
+  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory,toggleAvailabilityInDB
 
 };

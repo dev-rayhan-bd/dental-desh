@@ -38,7 +38,11 @@ router.get(
 router.delete('/delete-profile',auth(USER_ROLE.superAdmin,USER_ROLE.user),RiderController.deleteProfile);
 
 
-
+router.patch(
+  '/toggle-availability',
+  auth('driver'), 
+  RiderController.toggleStatus
+);
 
 
 

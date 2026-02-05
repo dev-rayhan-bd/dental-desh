@@ -53,4 +53,26 @@ const deleteProfile = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-export const RiderController={getMyProfile,getSingleProfile,getAllUser,deleteProfile}
+
+
+const toggleStatus = catchAsync(async (req: Request, res: Response) => {
+  const riderId = req.user.userId; 
+  const result = await RiderServices.toggleAvailabilityInDB(riderId);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: `Rider is now ${result?.isAvailable ? 'Online' : 'Offline'}`,
+    data: result,
+  });
+  
+});
+
+
+
+
+
+
+
+
+export const RiderController={getMyProfile,getSingleProfile,getAllUser,deleteProfile,toggleStatus}

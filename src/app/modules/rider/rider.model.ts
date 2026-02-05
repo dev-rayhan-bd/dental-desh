@@ -72,5 +72,5 @@ riderSchema.statics.isUserExistsByEmail = async function (email: string) {
 riderSchema.statics.isPasswordMatched = async function (plainTextPassword, hashedPassword) {
   return await bcrypt.compare(plainTextPassword, hashedPassword);
 };
-
+riderSchema.index({ lastLocation: '2dsphere' });
 export const Rider = model<IRider, RiderModel>('Rider', riderSchema);
