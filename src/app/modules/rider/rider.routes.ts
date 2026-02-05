@@ -30,10 +30,11 @@ router.get(
 );
 router.get(
   '/all',
- 
   auth(USER_ROLE.superAdmin,USER_ROLE.driver,USER_ROLE.user),
   RiderController.getAllUser,
 );
+ 
+
 
 router.delete('/delete-profile',auth(USER_ROLE.superAdmin,USER_ROLE.user),RiderController.deleteProfile);
 
@@ -44,8 +45,16 @@ router.patch(
   RiderController.toggleStatus
 );
 
+router.get(
+  '/order-history',
+  auth(USER_ROLE.driver), 
+  RiderController.getOrderHistory
+);
 
-
-
+router.get(
+  '/my-wallet',
+  auth('driver'), 
+  RiderController.getMyWallet
+);
 
 export const RiderRoutes = router;

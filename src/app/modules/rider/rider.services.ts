@@ -7,6 +7,7 @@ import httpStatus from 'http-status';
 import QueryBuilder from "../../builder/QueryBuilder";
 import { Rider } from "./rider.model";
 import { Order } from "../Order/order.model";
+import { TUser } from "../User/user.interface";
 
 
 
@@ -92,13 +93,44 @@ const toggleAvailabilityInDB = async (riderId: string) => {
 };
 
 
+const getRiderWalletFromDB = async (riderId: string) => {
 
+  const rider = await Rider.findById(riderId).select('wallet fullName image');
+  if (!rider) throw new AppError(404, "Rider not found");
+
+
+  const orders = await Order.find({ rider: riderId, status: 'delivered' })
+    .populate('user', 'fullName image')
+    .sort({ completedAt: -1 }) 
+    .select('user paymentInfo completedAt');
+
+
+  const history = orders.map(order => {
+    const totalCharge = order.paymentInfo.deliveryCharge || 0;
+    const riderIncome = (totalCharge * 30) / 100; 
+const customer = order.user as unknown as TUser;
+    return {
+      customerName: customer?.fullName || "Guest User",
+      customerImage: customer?.image || null,
+      date: order.completedAt,
+      totalAmount: totalCharge,
+      income: riderIncome, 
+    };
+  });
+
+
+
+  return {
+    totalBalance: rider.wallet,
+    history
+  };
+};
 
 
 export const RiderServices = {
 
   getMyProfileFromDB,
   deletePrifileFromDB,
-  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory,toggleAvailabilityInDB
+  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory,toggleAvailabilityInDB,getRiderWalletFromDB
 
 };
