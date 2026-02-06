@@ -17,17 +17,22 @@ export const socketHelper = (io: SocketServer) => {
       console.log("❌ Socket Auth Error");
     }
 
-    // ১. রুমে জয়েন করা (resilient logic)
-    socket.on('join-order-room', (data: any) => {
-      // যদি ডাটা স্ট্রিং হয় তবে সরাসরি নিবে, আর অবজেক্ট হলে ভেতর থেকে আইডি নিবে
-      const orderId = typeof data === 'string' ? data : data?.orderId;
-      if (orderId) {
-        socket.join(orderId);
-        console.log(`🏠 Joined room: ${orderId}`);
-      }
-    });
 
-    // ২. লাইভ লোকেশন আপডেট (Rider to User)
+
+
+socket.on('join-order-room', (data: any) => {
+
+  const roomId = typeof data === 'string' ? data : (data?.trackingId || data?.orderId);
+  
+  if (roomId) {
+    socket.join(roomId);
+    console.log(`🏠 Joined room: ${roomId}`);
+  }
+});
+
+
+
+    // live loc update for order track 
     socket.on('update-live-location', (data: any) => {
       if (!data || !data.orderId || !data.lat) return;
 
@@ -39,7 +44,7 @@ export const socketHelper = (io: SocketServer) => {
       });
     });
 
-    // ৩. গ্লোবাল লোকেশন আপডেট (DB Update)
+    // rider loc update on db 
     socket.on('rider-location-update', async (data: any) => {
       const rId = data?.riderId || socket.data.user?.userId;
       if (!rId || !data.lat) return;

@@ -29,6 +29,7 @@ async function main() {
 
 
     socketHelper(io);
+    app.set('io', io); 
   } catch (err) {
     console.log(err);
   }

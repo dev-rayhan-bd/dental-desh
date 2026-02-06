@@ -110,7 +110,7 @@ const updateOrderStatusInDB = async (orderId: string, index: number, payload: an
   const order = await Order.findById(orderId);
   if (!order) throw new AppError(404, "Order not found");
 
-
+  // ১. নির্দিষ্ট পার্সেল বা গ্লোবাল স্ট্যাটাস আপডেট লজিক
   const updateFields: any = {
     $push: { timeline: { status: payload.status, message: payload.message, time: new Date() } }
   };
