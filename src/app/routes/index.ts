@@ -9,6 +9,7 @@ import { ContactRoutes } from '../modules/ContactUs/contact.route';
 import { DeliveryQuoteRoutes } from '../modules/deliveryQuote/deliveryQuote.routes';
 import { OrderRoutes } from '../modules/Order/order.routes';
 import { RiderRoutes } from '../modules/rider/rider.routes';
+import { MessageRoutes } from '../modules/Message/message.routes';
 
 
 
@@ -57,6 +58,10 @@ const moduleRoutes = [
 {
   path: '/order',
   route: OrderRoutes
+},
+{
+  path: '/message',
+  route: MessageRoutes
 }
 
 ];
