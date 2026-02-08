@@ -10,6 +10,7 @@ import { DeliveryQuoteRoutes } from '../modules/deliveryQuote/deliveryQuote.rout
 import { OrderRoutes } from '../modules/Order/order.routes';
 import { RiderRoutes } from '../modules/rider/rider.routes';
 import { MessageRoutes } from '../modules/Message/message.routes';
+import { NotificationRoutes } from '../modules/Notification/notification.routes';
 
 
 
@@ -62,6 +63,10 @@ const moduleRoutes = [
 {
   path: '/message',
   route: MessageRoutes
+},
+{
+  path: '/notification',
+  route: NotificationRoutes
 }
 
 ];

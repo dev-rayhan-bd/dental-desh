@@ -5,6 +5,7 @@ import httpStatus from 'http-status';
 import { DeliveryQuoteService } from './deliveryQuote.services';
 import uploadImage from '../../middleware/upload';
 import AppError from '../../errors/AppError';
+import { sendNotification } from '../../utils/sendNotification';
 
 const createQuote = catchAsync(async (req: Request, res: Response) => {
   const result = await DeliveryQuoteService.createQuoteIntoDB({ ...req.body, user: req.user.userId });
@@ -44,6 +45,22 @@ const acceptJob = catchAsync(async (req: Request, res: Response) => {
   const riderId = req.user.userId;
   
   const result = await DeliveryQuoteService.acceptJobInDB(id as string, riderId);
+
+//user
+  await sendNotification(
+    result.user.toString(), 
+    "Rider Assigned! 🏍️",
+    `A rider has accepted your delivery request. Tracking ID: ${result.trackingId}`,
+    "order"
+  );
+//for rider 
+ await sendNotification(
+    riderId,
+    "Job Confirmed! ✅",
+    `You have accepted Order #${result.trackingId}. Please proceed to pickup.`,
+    "order"
+  );
+
 
 
   const io = req.app.get('io');

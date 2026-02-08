@@ -38,9 +38,14 @@ export const sendNotification = async (
         },
         token: user.fcmToken, 
       };
-
-      await admin.messaging().send(payload);
-      console.log('Successfully sent push notification');
+    try {
+        await admin.messaging().send(payload);
+        console.log('✅ Push notification sent successfully');
+      } catch (fcmError: any) {
+     
+        console.error('⚠️ FCM Push failed (Invalid Token):', fcmError.message);
+      }
+   
     }
   } catch (error) {
     console.error('Error sending notification:', error);

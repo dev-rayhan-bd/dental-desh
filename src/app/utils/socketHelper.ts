@@ -4,23 +4,52 @@ import { Rider } from "../modules/rider/rider.model";
 import { verifyToken } from "../modules/Auth/auth.utils";
 import config from "../config";
 import { Message } from "../modules/Message/message.model";
+import { sendNotification } from "./sendNotification";
 
 export const socketHelper = (io: SocketServer) => {
-  io.on("connection", (socket) => {
-    const token =
-      socket.handshake.auth?.token || socket.handshake.headers?.token;
+
+ 
+  io.use((socket, next) => {
+      const token = socket.handshake.auth?.token || socket.handshake.headers?.token ||  socket.handshake.query?.token as string;
+
+    if (!token) {
+
+      return next(new Error("Authentication error: Token missing"));
+    }
 
     try {
-      if (token) {
-        const decoded = verifyToken(
-          token as string,
-          config.jwt_access_secret as string,
-        );
-        socket.data.user = decoded;
-      }
+      const decoded = verifyToken(token, config.jwt_access_secret as string);
+
+      socket.data.user = decoded;
+      next(); 
     } catch (err) {
-      console.log("❌ Socket Auth Error");
+
+      console.log("❌ Socket connection rejected: Invalid or Expired Token");
+      return next(new Error("Authentication error: Invalid or Expired Token"));
     }
+  });
+
+
+
+  io.on("connection", (socket) => {
+    // const token =
+    //   socket.handshake.auth?.token || socket.handshake.headers?.token ||  socket.handshake.query?.token as string;
+
+    // try {
+    //   if (token) {
+    //     const decoded = verifyToken(
+    //       token as string,
+    //       config.jwt_access_secret as string,
+    //     );
+    //     socket.data.user = decoded;
+    //   }
+    // } catch (err) {
+    //   console.log("❌ Socket Auth Error");
+    // }
+
+
+
+
 
     socket.on("join-order-room", (data: any) => {
       const roomId =
@@ -97,6 +126,15 @@ socket.on('send-message', async (data: {
   io.to(data.trackingId).emit('new-message', newMessage);
   
   console.log(`📩 Message saved & sent to room: ${data.trackingId}`);
+
+  await sendNotification(
+    data.receiverId,
+    "New Message 💬",
+    data.text || "You received a photo.",
+    "general"
+  );
+
+  
 });
 
 

@@ -5,6 +5,7 @@ import httpStatus from 'http-status';
 import { OrderService } from './order.services';
 import AppError from '../../errors/AppError';
 import uploadImage from '../../middleware/upload';
+import { sendNotification } from '../../utils/sendNotification';
 
 const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   const result = await OrderService.getAllOrdersFromDB(req.query);
@@ -63,7 +64,7 @@ const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
 const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
   const { id, index } = req.params;
   const payload = { ...req.body };
-
+const riderId = req.user.userId;
 
 
   if (payload.status === 'delivered') {
@@ -87,6 +88,26 @@ const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
 
   // db update (Service Call)
   const result = await OrderService.updateOrderStatusInDB(id as string, Number(index), payload);
+
+
+//for user
+  await sendNotification(
+    result?.user.toString() as string,
+    "Delivery Update 📦",
+    payload.message || `Status: ${payload.status}`,
+    "order"
+  );
+
+  //for rider
+  await sendNotification(
+    riderId,
+    "Update Successful!",
+    `You updated Order #${result?.trackingId} to ${payload.status}`,
+    "order"
+  );
+
+
+
 
   // real time status update using socket
 
