@@ -40,7 +40,10 @@ const quoteSchema = new Schema<IDeliveryQuote>({
   dropOffs: [dropOffSchema],
   status: { type: String, enum: ['pending', 'req accepted', 'percel picked', 'delivered'], default: 'pending' },
   timeline: [{ status: String, message: String, time: { type: Date, default: Date.now } }],
-  paymentInfo: { deliveryCharge: Number },
+   paymentInfo: {
+    deliveryCharge: { type: Number, required: true },
+    riderEarnings: { type: Number, default: 0 } 
+  },
 }, { timestamps: true });
 
 export const DeliveryQuote = model<IDeliveryQuote>('DeliveryQuote', quoteSchema);

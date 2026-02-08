@@ -72,7 +72,7 @@ const toggleStatus = catchAsync(async (req: Request, res: Response) => {
 
 const getOrderHistory = catchAsync(async (req: Request, res: Response) => {
   const riderId = req.user.userId;
-  const result = await RiderServices.getRiderOrderHistory(riderId);
+  const result = await RiderServices.getRiderOrderHistory(riderId,req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
@@ -83,7 +83,7 @@ const getOrderHistory = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMyWallet = catchAsync(async (req: Request, res: Response) => {
-  const result = await RiderServices.getRiderWalletFromDB(req.user.userId);
+  const result = await RiderServices.getRiderWalletFromDB(req.user.userId,req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

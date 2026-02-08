@@ -52,10 +52,10 @@ const orderSchema = new Schema<IOrder>(
     timeline: [
  timelineSchema
     ],
-    paymentInfo: {
-
-      deliveryCharge: Number,
-    },
+     paymentInfo: {
+    deliveryCharge: { type: Number, required: true },
+    riderEarnings: { type: Number, default: 0 } 
+  },
     completedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }

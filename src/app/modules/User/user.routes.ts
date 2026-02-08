@@ -61,7 +61,7 @@ router.get(
 router.get(
   '/all',
  
-  auth(USER_ROLE.superAdmin),
+  // auth(USER_ROLE.superAdmin),
   UserControllers.getAllUser,
 );
 

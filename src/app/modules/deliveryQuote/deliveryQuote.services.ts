@@ -47,12 +47,18 @@ const acceptJobInDB = async (quoteId: string, riderId: string) => {
   const quote = await DeliveryQuote.findById(quoteId).lean();
   if (!quote) throw new AppError(404, "Job not found or already accepted");
 
+ const deliveryCharge = quote.paymentInfo.deliveryCharge || 0;
+  const income = (deliveryCharge * 30) / 100;
 
   const { _id, ...orderData } = quote;
   const newOrder = await Order.create({
     ...orderData,
     rider: riderId,
     status: 'req accepted',
+      paymentInfo: {
+      deliveryCharge: deliveryCharge,
+      riderEarnings: income 
+    },
     timeline: [
       ...quote.timeline,
       { status: 'req accepted', message: 'Rider has accepted the job.', time: new Date() }

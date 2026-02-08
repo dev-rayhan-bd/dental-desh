@@ -51,7 +51,7 @@ const deleteUserFromDB = async (id: string) => {
 };
 const getAllUserFromDB = async (query: Record<string, unknown>) => {
   const queryBuilder = new QueryBuilder(UserModel.find(), query);
-  queryBuilder.search(["firstName", "lastName", "email", "role"]).filter().sort().paginate();
+  queryBuilder.search(["fullName", "email", "role"]).filter().sort().paginate();
   const result = await queryBuilder.modelQuery;
   const meta = await queryBuilder.countTotal();
 

@@ -71,7 +71,13 @@ const updateOrderStatusInDB = async (orderId: string, index: number, payload: an
   const order = await Order.findById(orderId);
   if (!order) throw new AppError(404, "Order not found");
 
+ if (index === -1) {
 
+    if (payload.status === 'delivered') {
+      if (order.status !== 'percel picked' && order.status !== 'trip started') {
+        throw new AppError(400, "Cannot mark as delivered globally. Parcels must be picked up first!");
+      }
+    }}
 
 
   if (index !== -1 && payload.status === 'trip started') {
@@ -137,24 +143,25 @@ if (index === -1) {
     });
 
 
+
   const isAllDelivered = result?.dropOffs.every(d => d.status === 'delivered');
-  
-  if (isAllDelivered && result?.status !== 'delivered') {
+   if (isAllDelivered && result?.status !== ('delivered' as string)) {
+    const deliveryCharge = result?.paymentInfo.deliveryCharge || 0;
+    const income = (deliveryCharge * 30) / 100;
 
     const finalizedOrder = await Order.findByIdAndUpdate(
       orderId, 
-      { status: 'delivered', completedAt: new Date() },
-    { 
-      new: true, 
-      runValidators: true 
-    }
+      { 
+        $set: { 
+          status: 'delivered', 
+          completedAt: new Date(),
+          "paymentInfo.riderEarnings": income 
+        } 
+      },
+      { new: true }
     );
 
-    //30% rider income
     if (finalizedOrder?.rider) {
-      const deliveryCharge = finalizedOrder.paymentInfo.deliveryCharge || 0;
-      const income = (deliveryCharge * 30) / 100; 
-
       await Rider.findByIdAndUpdate(finalizedOrder.rider, {
         $inc: { 
           wallet: income, 
@@ -164,6 +171,7 @@ if (index === -1) {
       });
       console.log(`💰 Rider ${finalizedOrder.rider} earned: ${income}`);
     }
+    return finalizedOrder;
   }
 
   return result;

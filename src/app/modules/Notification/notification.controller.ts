@@ -4,13 +4,13 @@ import sendResponse from '../../utils/sendResponse';
 import httpStatus from 'http-status';
 import { NotificationModel } from './notification.model';
 import AppError from '../../errors/AppError';
+import { NotificationService } from './notification.services';
 
 const getMyNotifications = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user.userId;
 
 
-  const result = await NotificationModel.find({ user: userId })
-    .sort({ createdAt: -1 });
+  const result = await NotificationService.getMyNotificationsFromDB(userId, req.query)
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

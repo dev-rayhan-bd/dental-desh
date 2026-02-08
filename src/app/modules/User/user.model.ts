@@ -27,7 +27,12 @@ const userSchema = new Schema<TUser, User, IUserMethods>(
         default: null,
       },
     },
-
+  status: {
+      type: String,
+      required: true,
+      enum: UserStatus,
+      default: "in-progress",
+    },
 
  role: { 
   type: String, 

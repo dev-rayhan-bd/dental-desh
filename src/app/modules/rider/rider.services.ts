@@ -66,12 +66,25 @@ const getNearbyRidersFromDB = async (lat: number, lng: number) => {
   return riders;
 };
 
-const getRiderOrderHistory = async (riderId: string) => {
 
-  const result = await Order.find({ rider: riderId, status: 'delivered' })
-    .sort({ createdAt: -1 });
+const getRiderOrderHistory = async (riderId: string, query: Record<string, unknown>) => {
+  const orderQuery = new QueryBuilder(
+    // status: 'delivered'
+    Order.find({ rider: riderId }).populate('user', 'fullName image '), 
+    query
+  ).search(['trackingId'])
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
-  return result;
+  const result = await orderQuery.modelQuery;
+  const meta = await orderQuery.countTotal();
+
+ 
+
+
+  return { meta, result };
 };
 
 
@@ -93,37 +106,60 @@ const toggleAvailabilityInDB = async (riderId: string) => {
 };
 
 
-const getRiderWalletFromDB = async (riderId: string) => {
+// const getRiderWalletFromDB = async (riderId: string,query: Record<string, unknown>) => {
 
-  const rider = await Rider.findById(riderId).select('wallet fullName image');
-  if (!rider) throw new AppError(404, "Rider not found");
-
-
-  const orders = await Order.find({ rider: riderId, status: 'delivered' })
-    .populate('user', 'fullName image')
-    .sort({ completedAt: -1 }) 
-    .select('user paymentInfo completedAt');
+//   const rider = await Rider.findById(riderId).select('wallet fullName image');
+//   if (!rider) throw new AppError(404, "Rider not found");
 
 
-  const history = orders.map(order => {
-    const totalCharge = order.paymentInfo.deliveryCharge || 0;
-    const riderIncome = (totalCharge * 30) / 100; 
-const customer = order.user as unknown as TUser;
-    return {
-      customerName: customer?.fullName || "Guest User",
-      customerImage: customer?.image || null,
-      date: order.completedAt,
-      totalAmount: totalCharge,
-      income: riderIncome, 
-    };
-  });
+//   const orders = await Order.find({ rider: riderId, status: 'delivered' })
+//     .populate('user', 'fullName image')
+//     .sort({ completedAt: -1 }) 
+//     .select('user paymentInfo completedAt');
+
+
+//   const history = orders.map(order => {
+//     const totalCharge = order.paymentInfo.deliveryCharge || 0;
+//     const riderIncome = (totalCharge * 30) / 100; 
+// const customer = order.user as unknown as TUser;
+//     return {
+//       customerName: customer?.fullName || "Guest User",
+//       customerImage: customer?.image || null,
+//       date: order.completedAt,
+//       totalAmount: totalCharge,
+//       income: riderIncome, 
+//     };
+//   });
 
 
 
-  return {
-    totalBalance: rider.wallet,
-    history
-  };
+//   return {
+//     totalBalance: rider.wallet,
+//     history
+//   };
+// };
+
+const getRiderWalletFromDB = async (riderId: string, query: Record<string, unknown>) => {
+  const rider = await Rider.findById(riderId).select('wallet');
+
+  const walletQuery = new QueryBuilder(
+    Order.find({ rider: riderId, status: 'delivered' }).populate('user', 'fullName image'), 
+    query
+  ).search(['customerName']).filter().sort().paginate();
+
+  const result = await walletQuery.modelQuery;
+  const meta = await walletQuery.countTotal();
+
+  const transactionHistory = result.map(order => ({
+    customerName: (order.user as any)?.fullName || "Guest",
+    customerImage: (order.user as any)?.image || null,
+    date: order.completedAt,
+    orderTotal: order.paymentInfo.deliveryCharge,
+
+    riderIncome: order.paymentInfo.riderEarnings 
+  }));
+
+  return { totalBalance: rider?.wallet || 0, meta, result: transactionHistory };
 };
 
 

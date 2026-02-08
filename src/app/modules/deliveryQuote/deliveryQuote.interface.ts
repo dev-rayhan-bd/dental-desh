@@ -46,5 +46,6 @@ export interface IDeliveryQuote {
   paymentInfo: {
 
     deliveryCharge: number;
+    riderEarnings:number
   };
 }
