@@ -67,50 +67,55 @@ const getSingleOrderFromDB = async (id: string) => {
 
 
 
-// const updateOrderStatusInDB = async (orderId: string, index: number, payload: any) => {
-//   const order = await Order.findById(orderId);
-//   if (!order) throw new AppError(404, "Order not found");
-
-
-//   if (index === -1) {
-//     return await Order.findByIdAndUpdate(
-//       orderId,
-//       {
-//         $set: { status: payload.status },
-//         $push: { timeline: { status: payload.status, message: payload.message, time: new Date() } }
-//       },
-//       { new: true }
-//     );
-//   }
-
-//   //  (trip started, delivered)
-//   const updateFields: any = {
-//     [`dropOffs.${index}.status`]: payload.status,
-//     $push: { timeline: { status: payload.status, message: payload.message, time: new Date() } }
-//   };
-
-//   if (payload.status === 'delivered') {
-//     updateFields[`dropOffs.${index}.deliveryProofImg`] = payload.deliveryProofImg;
-//     updateFields[`dropOffs.${index}.signatureImg`] = payload.signatureImg;
-//     updateFields[`dropOffs.${index}.deliveredAt`] = new Date();
-//   }
-
-//   const result = await Order.findByIdAndUpdate(orderId, updateFields, { new: true });
-
-
-//   if (result?.dropOffs.every(d => d.status === 'delivered')) {
-//     await Order.findByIdAndUpdate(orderId, { status: 'delivered', completedAt: new Date() });
-//   }
-
-//   return result;
-// };
-
-
 const updateOrderStatusInDB = async (orderId: string, index: number, payload: any) => {
   const order = await Order.findById(orderId);
   if (!order) throw new AppError(404, "Order not found");
 
-  // ১. নির্দিষ্ট পার্সেল বা গ্লোবাল স্ট্যাটাস আপডেট লজিক
+
+
+
+  if (index !== -1 && payload.status === 'trip started') {
+
+    if (order.status !== 'percel picked') {
+      throw new AppError(400, "You must pick up all parcels from the sender before starting a trip.");
+    }
+  }
+
+
+  if (index === -1 && payload.status === 'percel picked') {
+
+    if (order.status !== 'req accepted') {
+      throw new AppError(400, "You cannot pick up parcels until the job is accepted.");
+    }
+  }
+
+
+  if (index !== -1 && payload.status === 'delivered') {
+
+    if (order.dropOffs[index].status !== 'trip started') {
+      throw new AppError(400, "You must start the trip for this parcel before marking it as delivered.");
+    }
+  }
+
+
+
+
+
+if (index === -1) {
+ 
+    if (order.status === payload.status) {
+      throw new AppError(httpStatus.BAD_REQUEST, `Order is already marked as ${payload.status}`);
+    }
+  } else {
+  
+    const targetParcel = order.dropOffs[index];
+    if (!targetParcel) throw new AppError(404, "Parcel not found at this index");
+    
+    if (targetParcel.status === payload.status) {
+      throw new AppError(httpStatus.BAD_REQUEST, `This parcel is already marked as ${payload.status}`);
+    }
+  }
+
   const updateFields: any = {
     $push: { timeline: { status: payload.status, message: payload.message, time: new Date() } }
   };
@@ -126,7 +131,10 @@ const updateOrderStatusInDB = async (orderId: string, index: number, payload: an
     }
   }
 
-  const result = await Order.findByIdAndUpdate(orderId, updateFields, { new: true });
+  const result = await Order.findByIdAndUpdate(orderId, updateFields, { 
+      new: true, 
+      runValidators: true 
+    });
 
 
   const isAllDelivered = result?.dropOffs.every(d => d.status === 'delivered');
@@ -136,7 +144,10 @@ const updateOrderStatusInDB = async (orderId: string, index: number, payload: an
     const finalizedOrder = await Order.findByIdAndUpdate(
       orderId, 
       { status: 'delivered', completedAt: new Date() },
-      { new: true }
+    { 
+      new: true, 
+      runValidators: true 
+    }
     );
 
     //30% rider income

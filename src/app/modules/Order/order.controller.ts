@@ -95,7 +95,9 @@ const riderId = req.user.userId;
     result?.user.toString() as string,
     "Delivery Update 📦",
     payload.message || `Status: ${payload.status}`,
-    "order"
+    "order",
+      result?.trackingId,           
+  payload.status 
   );
 
   //for rider

@@ -16,7 +16,9 @@ export const sendNotification = async (
   userId: string,
   title: string,
   message: string,
-  type: string = 'general'
+  type:string,
+  trackingId?: string,
+  deliveryStatus?: string
 ) => {
   try {
 
@@ -24,7 +26,9 @@ export const sendNotification = async (
       user: userId,
       title,
       message,
-      type
+     type,
+      trackingId,
+      deliveryStatus
     });
 
  

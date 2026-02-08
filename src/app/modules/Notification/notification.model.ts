@@ -4,6 +4,8 @@ const notificationSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   title: { type: String, required: true },
   message: { type: String, required: true },
+    trackingId: { type: String }, 
+  deliveryStatus: { type: String },
   type: { 
     type: String, 
     enum: ['order', 'birthday', 'promo', 'general','catering'], 

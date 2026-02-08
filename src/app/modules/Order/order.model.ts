@@ -19,7 +19,12 @@ const dropOffSchema = new Schema({
   packageName: { type: String, required: true },
   quantity: { type: Number, required: true },
   weight: { type: String, required: true },
-  status: { type: String, default: 'delivered' },
+   status: { 
+    type: String, 
+    enum: ['pending', 'trip started', 'delivered'],
+    default: 'pending',
+    trim: true 
+  },
   deliveryProofImg: String,
   signatureImg: String,
   deliveredAt: Date,
@@ -38,7 +43,12 @@ const orderSchema = new Schema<IOrder>(
     rider: { type: Schema.Types.ObjectId, ref: 'Rider' },
     pickupLocation: { type: addressSchema, required: true }, 
     dropOffs: [dropOffSchema],
-    status: { type: String, default: 'delivered' },
+    status: { 
+    type: String, 
+    enum: ['pending', 'req accepted', 'percel picked', 'delivered'], 
+    default: 'pending',
+    trim: true
+  },
     timeline: [
  timelineSchema
     ],
