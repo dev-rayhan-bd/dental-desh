@@ -49,7 +49,7 @@ const registeredUserIntoDB = async (payload: TUser) => {
   await sendMail(
     payload.email,
     "Your OTP Code",
-    `Your OTP code is: ${otp}. It will expire in 1 minute.`
+    `Your OTP code is: ${otp}. It will expire in 5 minute.`
   );
 
   return {
@@ -224,7 +224,7 @@ const resendOTP = async (email: string) => {
   await sendMail(
     email,
     "Your New OTP Code",
-    `Your new OTP code is: ${otp}. It will expire in 1 minute.`
+    `Your new OTP code is: ${otp}. It will expire in 5 minute.`
   );
 
   return {
@@ -495,7 +495,7 @@ export const forgotPass = async (email: string) => {
   await sendMail(
     email,
     "Your OTP Code",
-    `Your OTP code is: ${otp}. It will expire in 1 minute.`
+    `Your OTP code is: ${otp}. It will expire in 5 minute.`
   );
 };
 export const verifyOTP = async (email: string, otp: string) => {
