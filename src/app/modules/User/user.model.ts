@@ -12,7 +12,7 @@ const userSchema = new Schema<TUser, User, IUserMethods>(
     fullName: { type: String ,required:true},
     image: { type: String },
     email: { type: String, required: true, unique: true },
-    businessId: { type: String, unique: true },
+    businessId: { type: String, unique: true,  sparse: true },
     contact: { type: String, required: true },
     location: { type: String, required: true },
     dob: { type: Date, required: true },

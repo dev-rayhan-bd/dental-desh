@@ -28,7 +28,16 @@ const registeredUserIntoDB = async (payload: TUser) => {
     throw new AppError(httpStatus.CONFLICT, "This user already exists!");
   }
 
+  if (payload.role === 'user') {
+    if (!payload.businessId) {
+      throw new AppError(httpStatus.BAD_REQUEST, "Business ID is required for users!");
+    }
 
+    const existingBusinessId = await UserModel.findOne({ businessId: payload.businessId });
+    if (existingBusinessId) {
+      throw new AppError(httpStatus.CONFLICT, "This Business ID is already registered!");
+    }
+  }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
