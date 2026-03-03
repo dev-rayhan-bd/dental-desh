@@ -37,7 +37,7 @@ const registeredUserIntoDB = async (payload: TUser) => {
 
     verification: {
       code: otp,
-      expireDate: new Date(Date.now() + 1 * 60 * 1000), // 1-minute expiry
+      expireDate: new Date(Date.now() + 5 * 60 * 1000), // 5-minute expiry
     },
   };
 
@@ -217,7 +217,7 @@ const resendOTP = async (email: string) => {
   await UserModel.findByIdAndUpdate(user._id, {
     verification: {
       code: hashedOtp,
-      expireDate: new Date(Date.now() + 1 * 60 * 1000), // 1-minute expiry
+      expireDate: new Date(Date.now() + 5 * 60 * 1000), // 5-minute expiry
     },
   });
 
@@ -485,7 +485,7 @@ export const forgotPass = async (email: string) => {
   // 2. Save OTP + expiration to user object
   user.verification = {
     code: otp,
-    expireDate: new Date(Date.now() + 1 * 60 * 1000), // 1 minute expiry
+    expireDate: new Date(Date.now() + 5 * 60 * 1000), // 5 minute expiry
   };
 
   // 3. Save user to trigger pre-save hook (which hashes the OTP)
