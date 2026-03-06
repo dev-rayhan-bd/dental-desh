@@ -9,7 +9,7 @@ import sendResponse from "../../utils/sendResponse";
 import uploadImage from "../../middleware/upload";
 
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
-  console.log("req.user", req.user);
+
   const id = req?.user?.userId;
 
   let imageUrl: string | undefined;
@@ -19,13 +19,14 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
   }
 
   const body = req.body || {};
-
+ 
   const payload = {
     ...body,
     image: imageUrl ? imageUrl : undefined,
   };
+
   const result = await UserServices.updateProfileFromDB(id, payload);
-  console.log("result--->", result);
+  // console.log("result--->", result);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
