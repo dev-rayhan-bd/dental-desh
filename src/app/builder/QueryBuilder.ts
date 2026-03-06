@@ -21,52 +21,61 @@ class QueryBuilder<T> {
     return this;
   }
 
-  // filter() {
-  //   const queryObj: Record<string, unknown> = { ...this.query };
-  //   const exclude = ['search', 'sort', 'limit', 'page', 'fields'];
-  //   exclude.forEach((k) => delete queryObj[k]);
 
-  //   const mongo: Record<string, unknown> = {};
 
-  //   for (const [key, raw] of Object.entries(queryObj)) {
-  //     if (raw == null || (typeof raw === 'string' && raw.trim() === '')) continue;
 
-  //     if (key === 'availability') {
-  //       const date = typeof raw === 'string' ? raw : (raw as string[])[0];
-  //       if (date) {
-  //         mongo['availability.start'] = { $lte: date };
-  //         mongo['availability.end'] = { $gte: date };
-  //       }
-  //       continue;
-  //     }
+// filter() {
+//   const queryObj: Record<string, unknown> = { ...this.query };
+//   const exclude = ['search', 'sort', 'limit', 'page', 'fields'];
+//   exclude.forEach((k) => delete queryObj[k]);
 
-  //     if (key === 'max_adult' || key === 'child_min_age') {
-  //       const value = Number(raw);
-  //       if (isNaN(value)) {
-  //         throw new Error(`Invalid value for ${key}. Expected a number, got "${raw}".`);
-  //       }
-  //       mongo[key] = { $gte: value };
-  //       continue;
-  //     }
+//   const mongo: Record<string, unknown> = {};
 
-  //     if (typeof raw === 'string') {
-  //       if (/^(true|false)$/i.test(raw)) {
-  //         mongo[key] = /^true$/i.test(raw);
-  //         continue;
-  //       }
-  //       mongo[key] = {
-  //         $regex: raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
-  //         $options: 'i',
-  //       };
-  //     } else {
-  //       mongo[key] = raw;
-  //     }
-  //   }
+//   for (const [key, raw] of Object.entries(queryObj)) {
+//     if (raw == null || (typeof raw === 'string' && raw.trim() === '')) continue;
 
-  //   this.modelQuery = this.modelQuery.find(mongo as any);  
-  //   return this;
-  // }
 
+//     if (typeof raw === 'string' && mongoose.Types.ObjectId.isValid(raw)) {
+//       mongo[key] = raw;
+//       continue;
+//     }
+
+//     if (key === 'availability') {
+//       const date = typeof raw === 'string' ? raw : (raw as string[])[0];
+//       if (date) {
+//         mongo['availability.start'] = { $lte: date };
+//         mongo['availability.end'] = { $gte: date };
+//       }
+//       continue;
+//     }
+
+//     if (key === 'max_adult' || key === 'child_min_age') {
+//       const value = Number(raw);
+//       if (isNaN(value)) {
+//         throw new Error(`Invalid value for ${key}. Expected a number, got "${raw}".`);
+//       }
+//       mongo[key] = { $gte: value };
+//       continue;
+//     }
+
+//     if (typeof raw === 'string') {
+//       if (/^(true|false)$/i.test(raw)) {
+//         mongo[key] = /^true$/i.test(raw);
+//         continue;
+//       }
+
+//       mongo[key] = {
+//         $regex: raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+//         $options: 'i',
+//       };
+//     } else {
+//       mongo[key] = raw;
+//     }
+//   }
+
+//   this.modelQuery = this.modelQuery.find(mongo as any);  
+//   return this;
+// }
 
 
 filter() {
@@ -79,27 +88,13 @@ filter() {
   for (const [key, raw] of Object.entries(queryObj)) {
     if (raw == null || (typeof raw === 'string' && raw.trim() === '')) continue;
 
-
-    if (typeof raw === 'string' && mongoose.Types.ObjectId.isValid(raw)) {
+    if (typeof raw === 'object' && !Array.isArray(raw)) {
       mongo[key] = raw;
       continue;
     }
 
-    if (key === 'availability') {
-      const date = typeof raw === 'string' ? raw : (raw as string[])[0];
-      if (date) {
-        mongo['availability.start'] = { $lte: date };
-        mongo['availability.end'] = { $gte: date };
-      }
-      continue;
-    }
-
-    if (key === 'max_adult' || key === 'child_min_age') {
-      const value = Number(raw);
-      if (isNaN(value)) {
-        throw new Error(`Invalid value for ${key}. Expected a number, got "${raw}".`);
-      }
-      mongo[key] = { $gte: value };
+    if (typeof raw === 'string' && mongoose.Types.ObjectId.isValid(raw)) {
+      mongo[key] = raw;
       continue;
     }
 
@@ -108,7 +103,6 @@ filter() {
         mongo[key] = /^true$/i.test(raw);
         continue;
       }
-
       mongo[key] = {
         $regex: raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
         $options: 'i',
@@ -121,6 +115,8 @@ filter() {
   this.modelQuery = this.modelQuery.find(mongo as any);  
   return this;
 }
+
+
 
 sort(field: string = 'createdAt', order: 1 | -1 = -1) {
   // Handle case where sort could be string or string[]

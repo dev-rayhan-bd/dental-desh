@@ -5,6 +5,7 @@ import { verifyToken } from "../modules/Auth/auth.utils";
 import config from "../config";
 import { Message } from "../modules/Message/message.model";
 import { sendNotification } from "./sendNotification";
+import { DeliveryQuoteService } from "../modules/deliveryQuote/deliveryQuote.services";
 
 export const socketHelper = (io: SocketServer) => {
 
@@ -136,6 +137,58 @@ socket.on('send-message', async (data: {
 
   
 });
+
+
+
+
+
+
+
+socket.on('accept-delivery-job', async (data: { quoteId: string }) => {
+  try {
+    const riderId = socket.data.user?.userId;
+    
+   
+    const result = await DeliveryQuoteService.acceptJobInDB(data.quoteId, riderId);
+
+
+    socket.join(result.trackingId);
+
+   
+    io.to(result.trackingId).emit('order-status-updated', {
+      status: 'req accepted',
+      rider: result.rider,
+      trackingId: result.trackingId
+    });
+
+ 
+    io.emit('job-taken', { quoteId: data.quoteId });
+
+  } catch (error: any) {
+    socket.emit('error-message', error.message);
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   });

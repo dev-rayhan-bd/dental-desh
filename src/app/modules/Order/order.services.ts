@@ -6,11 +6,61 @@ import { DeliveryQuote } from '../deliveryQuote/deliveryQuote.model';
 import { Rider } from '../rider/rider.model';
 
 
+
+
+
+
+
+
+const applyOrderFilters = (query: Record<string, unknown>) => {
+  const filterObj: any = { ...query };
+
+
+   if (query.date) {
+    const dateStr = query.date as string;
+    
+    
+    const start = new Date(dateStr);
+    start.setUTCHours(0, 0, 0, 0);
+
+  
+    const end = new Date(dateStr);
+    end.setUTCHours(23, 59, 59, 999);
+
+    filterObj.createdAt = { $gte: start, $lte: end };
+    delete filterObj.date;
+  }
+
+  //  (Weekly/Monthly)
+  if (query.range === 'weekly') {
+    filterObj.createdAt = { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) };
+    delete filterObj.range;
+  } else if (query.range === 'monthly') {
+    filterObj.createdAt = { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) };
+    delete filterObj.range;
+  }
+
+  // (Current/Upcoming)
+  if (query.status === 'current') {
+    filterObj.status = { $in: ['req accepted', 'percel picked', 'trip started'] };
+  } else if (query.status === 'upcoming') {
+    filterObj.status = 'pending';
+  }
+
+  return filterObj;
+};
+
+
 const getAllOrdersFromDB = async (query: Record<string, unknown>) => {
-  const orderQuery = new QueryBuilder(Order.find().populate('user rider'), query)
+  const filteredQuery = applyOrderFilters(query);
+
+  const orderQuery = new QueryBuilder(
+    Order.find().populate('user rider'), 
+    filteredQuery
+  )
     .search(['trackingId', 'pickupLocation.formattedAddress'])
     .filter()
-    .sort()
+    .sort('-createdAt')
     .paginate()
     .fields();
 
@@ -19,31 +69,62 @@ const getAllOrdersFromDB = async (query: Record<string, unknown>) => {
   return { meta, result };
 };
 
+
 const getMyOrdersFromDB = async (userId: string, query: Record<string, unknown>) => {
-  const orderQueryObj: any = { ...query, user: userId };
 
- 
-  if (query.date) {
-    const start = new Date(query.date as string);
-    const end = new Date(query.date as string);
-    end.setHours(23, 59, 59, 999);
-    orderQueryObj.createdAt = { $gte: start, $lte: end };
-    delete orderQueryObj.date;
-  }
+  const filteredQuery = { ...applyOrderFilters(query), user: userId };
 
-
-
-
-  const orderQuery = new QueryBuilder(Order.find().populate('rider'), orderQueryObj)
+  const orderQuery = new QueryBuilder(
+    Order.find().populate('rider'), 
+    filteredQuery
+  )
     .search(['trackingId'])
     .filter()
-    .sort()
-    .paginate();
+    .sort('-createdAt')
+    .paginate()
+    .fields();
 
   const result = await orderQuery.modelQuery;
   const meta = await orderQuery.countTotal();
   return { meta, result };
 };
+
+
+// const getAllOrdersFromDB = async (query: Record<string, unknown>) => {
+//   const orderQuery = new QueryBuilder(Order.find().populate('user rider'), query)
+//     .search(['trackingId', 'pickupLocation.formattedAddress'])
+//     .filter()
+//     .sort()
+//     .paginate()
+//     .fields();
+
+//   const result = await orderQuery.modelQuery;
+//   const meta = await orderQuery.countTotal();
+//   return { meta, result };
+// };
+
+// const getMyOrdersFromDB = async (userId: string, query: Record<string, unknown>) => {
+//   const orderQueryObj: any = { ...query, user: userId };
+
+ 
+//   if (query.date) {
+//     const start = new Date(query.date as string);
+//     const end = new Date(query.date as string);
+//     end.setHours(23, 59, 59, 999);
+//     orderQueryObj.createdAt = { $gte: start, $lte: end };
+//     delete orderQueryObj.date;
+//   }
+
+//   const orderQuery = new QueryBuilder(Order.find().populate('rider'), orderQueryObj)
+//     .search(['trackingId'])
+//     .filter()
+//     .sort()
+//     .paginate();
+
+//   const result = await orderQuery.modelQuery;
+//   const meta = await orderQuery.countTotal();
+//   return { meta, result };
+// };
 
 
 
@@ -167,13 +248,25 @@ if (index === -1) {
           wallet: income, 
           totalEarnings: income, 
           totalTrips: 1 
-        }
+        },
+       $set: { isAvailable: true }
       });
       console.log(`💰 Rider ${finalizedOrder.rider} earned: ${income}`);
     }
     return finalizedOrder;
   }
 
+
+
+
+
+
+
+
+
+
+
+  
   return result;
 };
 

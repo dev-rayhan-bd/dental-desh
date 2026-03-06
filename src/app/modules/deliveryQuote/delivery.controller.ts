@@ -9,6 +9,11 @@ import { sendNotification } from '../../utils/sendNotification';
 
 const createQuote = catchAsync(async (req: Request, res: Response) => {
   const result = await DeliveryQuoteService.createQuoteIntoDB({ ...req.body, user: req.user.userId });
+    const io = req.app.get('io');
+  if (io) {
+    // cities/areas অনুযায়ী ফিল্টার করা যায়, আপাতত গ্লোবালি সবাইকে জানানো হচ্ছে
+    io.emit('new-job-available', result); 
+  }
   sendResponse(res, { statusCode: httpStatus.CREATED, success: true, message: 'Created', data: result });
 });
 

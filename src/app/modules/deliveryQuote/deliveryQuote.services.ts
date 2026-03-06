@@ -6,6 +6,7 @@ import { Order } from '../Order/order.model';
 import QueryBuilder from '../../builder/QueryBuilder';
 import { generateTrackingId } from '../../utils/generateTrackingId';
 import { calculateDeliveryCharge } from '../../utils/calculateDeliveryCharge';
+import { Rider } from '../rider/rider.model';
 
 const createQuoteIntoDB = async (payload: any) => {
   payload.trackingId = generateTrackingId();
@@ -43,28 +44,63 @@ const getSingleQuoteFromDB = async (id: string) => {
 };
 
 
+// const acceptJobInDB = async (quoteId: string, riderId: string) => {
+//   const quote = await DeliveryQuote.findById(quoteId).lean();
+//   if (!quote) throw new AppError(404, "Job not found or already accepted");
+
+//  const deliveryCharge = quote.paymentInfo.deliveryCharge || 0;
+//   const income = (deliveryCharge * 30) / 100;
+
+//   const { _id, ...orderData } = quote;
+//   const newOrder = await Order.create({
+//     ...orderData,
+//     rider: riderId,
+//     status: 'req accepted',
+//       paymentInfo: {
+//       deliveryCharge: deliveryCharge,
+//       riderEarnings: income 
+//     },
+//     timeline: [
+//       ...quote.timeline,
+//       { status: 'req accepted', message: 'Rider has accepted the job.', time: new Date() }
+//     ]
+//   });
+
+//   await DeliveryQuote.findByIdAndDelete(quoteId);
+
+//   return newOrder;
+// };
 const acceptJobInDB = async (quoteId: string, riderId: string) => {
+
+  const rider = await Rider.findById(riderId);
+  if (!rider?.isAvailable) {
+    throw new AppError(400, "You are already on a trip or offline!");
+  }
+
   const quote = await DeliveryQuote.findById(quoteId).lean();
   if (!quote) throw new AppError(404, "Job not found or already accepted");
 
- const deliveryCharge = quote.paymentInfo.deliveryCharge || 0;
+
+  const deliveryCharge = quote.paymentInfo.deliveryCharge || 0;
   const income = (deliveryCharge * 30) / 100;
 
+ 
   const { _id, ...orderData } = quote;
   const newOrder = await Order.create({
     ...orderData,
     rider: riderId,
     status: 'req accepted',
-      paymentInfo: {
-      deliveryCharge: deliveryCharge,
-      riderEarnings: income 
-    },
+    paymentInfo: { deliveryCharge, riderEarnings: income },
     timeline: [
       ...quote.timeline,
-      { status: 'req accepted', message: 'Rider has accepted the job.', time: new Date() }
+      { status: 'req accepted', message: 'Rider is on the way to pick up.', time: new Date() }
     ]
   });
 
+ 
+  await Rider.findByIdAndUpdate(riderId, { isAvailable: false });
+
+ 
   await DeliveryQuote.findByIdAndDelete(quoteId);
 
   return newOrder;

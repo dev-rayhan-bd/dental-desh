@@ -9,7 +9,7 @@ const router = Router();
 
 router.post('/create', auth('user'), validateRequest(DeliveryQuoteValidation.createDeliveryQuoteZodSchema), DeliveryQuoteController.createQuote);
 
-router.get('/all-quotes', auth('superAdmin', 'driver'), DeliveryQuoteController.getAllQuotes);
+router.get('/all-quotes', auth('superAdmin', 'driver','user'), DeliveryQuoteController.getAllQuotes);
 
 router.get('/my-quotes', auth('user'), DeliveryQuoteController.getMyQuotes); 
 
