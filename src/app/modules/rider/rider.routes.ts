@@ -9,12 +9,27 @@ import { upload } from '../../middleware/multer';
 import auth from '../../middleware/auth';
 import validateRequest from '../../middleware/validateRequest';
 import { RiderController } from './rider.controller';
+import { RiderValidation } from './rider.validation';
 
 
 const router = express.Router();
 
 
-
+router.patch(
+  '/update-profile',
+  auth('driver'),
+  upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'drivingLicense', maxCount: 1 },
+    { name: 'vehicleImage', maxCount: 1 },
+  ]),
+  (req, res, next) => {
+    if (req.body.body) req.body = JSON.parse(req.body.body);
+    next();
+  },
+  validateRequest(RiderValidation.updateRiderProfileZodSchema),
+  RiderController.updateProfile
+);
 
 router.get(
   '/my-profile',

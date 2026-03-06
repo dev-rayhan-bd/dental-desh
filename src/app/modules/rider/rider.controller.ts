@@ -3,6 +3,8 @@ import catchAsync from "../../utils/catchAsync";
 import sendResponse from "../../utils/sendResponse";
 import httpStatus from 'http-status';
 import { RiderServices } from "./rider.services";
+import uploadImage from "../../middleware/upload";
+import AppError from "../../errors/AppError";
 
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {
   const meId = req?.user?.userId;
@@ -94,7 +96,42 @@ const getMyWallet = catchAsync(async (req: Request, res: Response) => {
 });
 
 
+const updateProfile = catchAsync(async (req: Request, res: Response) => {
+  const riderId = req.user.userId;
+  const payload = req.body;
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
 
+  if (payload.vehicleNumber && (!files || !files.vehicleImage)) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST, 
+      "Security Alert: You must upload a new vehicle image whenever you change your vehicle number."
+    );
+  }
 
-export const RiderController={getMyProfile,getSingleProfile,getAllUser,deleteProfile,toggleStatus,getOrderHistory,getMyWallet}
+
+  if (files?.image) {
+    payload.image = await uploadImage(req, files.image[0]);
+  }
+  
+  if (files?.drivingLicense) {
+    payload.drivingLicense = await uploadImage(req, files.drivingLicense[0]);
+  }
+
+  if (files?.vehicleImage) {
+    payload.vehicleImage = await uploadImage(req, files.vehicleImage[0]);
+  }
+
+
+  const result = await RiderServices.updateRiderProfileFromDB(riderId, payload);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Profile updated successfully",
+    data: result,
+  });
+});
+
+
+export const RiderController={getMyProfile,getSingleProfile,getAllUser,deleteProfile,toggleStatus,getOrderHistory,getMyWallet,updateProfile}

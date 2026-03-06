@@ -553,6 +553,7 @@ export const verifyOTP = async (email: string, otp: string) => {
 
 
 const registerRiderIntoDB = async (payload: IRider) => {
+  // console.log("driver paylod--->",payload);
 
   const existingUser = await UserModel.findOne({ 
     $or: [{ email: payload.email }, { identificationNo: payload.identificationNo }] 

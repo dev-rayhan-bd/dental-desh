@@ -28,7 +28,14 @@ const createRiderZodSchema = z.object({
 
 
 
-
+const updateRiderProfileZodSchema = z.object({
+ fullName: z.string().trim().optional(),
+  contact: z.string().trim().optional(),
+  location: z.string().trim().optional(),
+    dob: z.string().optional(),
+  vehicleNumber: z.string().optional(),
+  vehicleType: z.enum(['car', 'bike', 'other']).optional(),
+});
 
 
 
@@ -44,4 +51,5 @@ const updateRiderZodSchema = z.object({
 export const RiderValidation = {
   createRiderZodSchema,
   updateRiderZodSchema,
+  updateRiderProfileZodSchema
 };

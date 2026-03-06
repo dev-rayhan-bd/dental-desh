@@ -163,10 +163,26 @@ const getRiderWalletFromDB = async (riderId: string, query: Record<string, unkno
 };
 
 
+const updateRiderProfileFromDB = async (riderId: string, payload: any) => {
+  const isRiderExist = await Rider.findById(riderId);
+  if (!isRiderExist) {
+    throw new AppError(httpStatus.NOT_FOUND, 'Rider not found!');
+  }
+
+  
+  const result = await Rider.findByIdAndUpdate(
+    riderId,
+    { $set: payload },
+    { new: true, runValidators: true }
+  );
+
+  return result;
+};
+
 export const RiderServices = {
 
   getMyProfileFromDB,
   deletePrifileFromDB,
-  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory,toggleAvailabilityInDB,getRiderWalletFromDB
+  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory,toggleAvailabilityInDB,getRiderWalletFromDB,updateRiderProfileFromDB
 
 };
