@@ -11,6 +11,7 @@ import { OrderRoutes } from '../modules/Order/order.routes';
 import { RiderRoutes } from '../modules/rider/rider.routes';
 import { MessageRoutes } from '../modules/Message/message.routes';
 import { NotificationRoutes } from '../modules/Notification/notification.routes';
+import { AdminRoutes } from '../modules/Admin/admin.routes';
 
 
 
@@ -67,7 +68,11 @@ const moduleRoutes = [
 {
   path: '/notification',
   route: NotificationRoutes
-}
+},
+{
+  path: '/admin',
+  route: AdminRoutes,
+},
 
 ];
 
