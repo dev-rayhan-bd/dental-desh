@@ -15,6 +15,7 @@ const riderSchema = new Schema<IRider, RiderModel, IUserMethods>(
     role: { type: String, default: "driver" },
     fcmToken: { type: String, required: true },
     isOtpVerified: { type: Boolean, default: false },
+    
     verification: {
       code: { type: String, default: null },
       expireDate: { type: Date, default: null },
@@ -27,7 +28,12 @@ const riderSchema = new Schema<IRider, RiderModel, IUserMethods>(
     vehicleImage: { type: String, required: true },
     gender: { type: String, enum: ["male", "female", "other"], required: true },
     isAvailable: { type: Boolean, default: false },
-
+    status: {
+      type: String,
+      required: true,
+      enum: ["in-progress", "blocked"],
+      default: "in-progress",
+    },
    lastLocation: {
       type: { type: String, enum: ['Point'], default: 'Point' },
       coordinates: { type: [Number], default: [0, 0] },
