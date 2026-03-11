@@ -47,6 +47,19 @@ const getDashboardStatsFromDB = async (year: number) => {
   };
 };
 
+
+
+const approveRiderInDB = async (riderId: string) => {
+  
+  await UserModel.findByIdAndUpdate(riderId, { status: 'in-progress' });
+  await Rider.findByIdAndUpdate(riderId, { status: 'in-progress', isAvailable: false });
+  
+  return { message: "Rider approved successfully" };
+};
+
+
+
+
 export const AdminServices = {
-  getDashboardStatsFromDB,
+  getDashboardStatsFromDB,approveRiderInDB
 };

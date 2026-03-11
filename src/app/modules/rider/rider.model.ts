@@ -28,12 +28,14 @@ const riderSchema = new Schema<IRider, RiderModel, IUserMethods>(
     vehicleImage: { type: String, required: true },
     gender: { type: String, enum: ["male", "female", "other"], required: true },
     isAvailable: { type: Boolean, default: false },
+     isOnline: { type: Boolean, default: false },  
     status: {
       type: String,
       required: true,
-      enum: ["in-progress", "blocked"],
-      default: "in-progress",
+      enum: ["in-progress", "blocked","pending"],
+      default: "pending",
     },
+    
    lastLocation: {
       type: { type: String, enum: ['Point'], default: 'Point' },
       coordinates: { type: [Number], default: [0, 0] },

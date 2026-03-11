@@ -54,11 +54,12 @@ const getAllUserFromDB = async (query: Record<string, unknown>) => {
 
 const getNearbyRidersFromDB = async (lat: number, lng: number) => {
   const riders = await Rider.find({
-    isAvailable: true, // online rider
+    isOnline: true,// online rider
+    isAvailable: true, 
     lastLocation: {
       $near: {
         $geometry: { type: "Point", coordinates: [lng, lat] },
-        $maxDistance: 5000, // 5000 mtr or 5 km
+        $maxDistance: 500000, // 500000 mtr or 500 km
       },
     },
   }).select('-password -verification -fcmToken -__v');
@@ -89,22 +90,41 @@ const getRiderOrderHistory = async (riderId: string, query: Record<string, unkno
 
 
 
-const toggleAvailabilityInDB = async (riderId: string) => {
+// const toggleAvailabilityInDB = async (riderId: string) => {
+//   const rider = await Rider.findById(riderId);
+//   if (!rider) {
+//     throw new AppError(404, "Rider not found!");
+//   }
+
+
+//   const result = await Rider.findByIdAndUpdate(
+//     riderId,
+//     { isAvailable: !rider.isAvailable },
+//     { new: true }
+//   );
+
+//   return result;
+// };
+const toggleOnlineStatusInDB = async (riderId: string) => {
   const rider = await Rider.findById(riderId);
   if (!rider) {
     throw new AppError(404, "Rider not found!");
   }
 
+ 
+  const newStatus = !rider.isOnline;
 
   const result = await Rider.findByIdAndUpdate(
     riderId,
-    { isAvailable: !rider.isAvailable },
-    { new: true }
+    { 
+      isOnline: newStatus, 
+      isAvailable: newStatus 
+    },
+    { new: true, runValidators: true }
   );
 
   return result;
 };
-
 
 // const getRiderWalletFromDB = async (riderId: string,query: Record<string, unknown>) => {
 
@@ -183,6 +203,6 @@ export const RiderServices = {
 
   getMyProfileFromDB,
   deletePrifileFromDB,
-  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory,toggleAvailabilityInDB,getRiderWalletFromDB,updateRiderProfileFromDB
+  getAllUserFromDB,getSingleProfileFromDB,deleteUserFromDB,getNearbyRidersFromDB,getRiderOrderHistory,getRiderWalletFromDB,updateRiderProfileFromDB,toggleOnlineStatusInDB
 
 };

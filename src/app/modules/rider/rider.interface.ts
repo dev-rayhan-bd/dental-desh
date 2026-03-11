@@ -17,7 +17,7 @@ export interface IRider extends TUser {
   vehicleImage: string;
 
   gender: 'male' | 'female' | 'other';
-  
+isOnline: boolean; 
   isAvailable: boolean;
   // GeoJSON Format: [longitude, latitude]
   lastLocation: {

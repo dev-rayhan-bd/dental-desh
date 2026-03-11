@@ -17,7 +17,18 @@ const getDashboardStats = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const approveRider = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const result = await AdminServices.approveRiderInDB(id as string);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Rider approved successfully! Now the rider can login.",
+    data: result,
+  });
+});
 
 export const AdminController = {
-  getDashboardStats,
+  getDashboardStats,approveRider
 };

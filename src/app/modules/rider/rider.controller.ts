@@ -57,19 +57,30 @@ const deleteProfile = catchAsync(async (req: Request, res: Response) => {
 
 
 
-const toggleStatus = catchAsync(async (req: Request, res: Response) => {
-  const riderId = req.user.userId; 
-  const result = await RiderServices.toggleAvailabilityInDB(riderId);
+// const toggleStatus = catchAsync(async (req: Request, res: Response) => {
+//   const riderId = req.user.userId; 
+//   const result = await RiderServices.toggleAvailabilityInDB(riderId);
+
+//   sendResponse(res, {
+//     statusCode: httpStatus.OK,
+//     success: true,
+//     message: `Rider is now ${result?.isAvailable ? 'Online' : 'Offline'}`,
+//     data: result,
+//   });
+
+// });
+const toggleOnlineOffline = catchAsync(async (req: Request, res: Response) => {
+  const riderId = req.user.userId;
+  
+  const result = await RiderServices.toggleOnlineStatusInDB(riderId);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: `Rider is now ${result?.isAvailable ? 'Online' : 'Offline'}`,
+    message: `Rider is now ${result?.isOnline ? 'Online' : 'Offline'}`,
     data: result,
   });
-
 });
-
 
 
 const getOrderHistory = catchAsync(async (req: Request, res: Response) => {
@@ -134,4 +145,4 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
 });
 
 
-export const RiderController={getMyProfile,getSingleProfile,getAllUser,deleteProfile,toggleStatus,getOrderHistory,getMyWallet,updateProfile}
+export const RiderController={getMyProfile,getSingleProfile,getAllUser,deleteProfile,toggleOnlineOffline,getOrderHistory,getMyWallet,updateProfile}

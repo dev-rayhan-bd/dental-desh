@@ -37,7 +37,14 @@ const auth = (...requiredRoles: TUserRole[]) => {
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new AppError(httpStatus.UNAUTHORIZED, 'You are not authorized !');
     }
+if (!user) {
+  throw new AppError(httpStatus.NOT_FOUND, 'This user is not found!');
+}
 
+
+if (user.status === 'blocked' || (user.role === 'driver' && user.status === 'pending')) {
+  throw new AppError(httpStatus.FORBIDDEN, 'Your account is not active or under review!');
+}
     if (
       user.passwordChangedAt &&
       UserModel.isJWTIssuedBeforePasswordChanged(

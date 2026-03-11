@@ -10,5 +10,9 @@ router.get(
   auth(USER_ROLE.superAdmin),
   AdminController.getDashboardStats
 );
-
+router.patch(
+  '/approve-rider/:id',
+  auth(USER_ROLE.superAdmin), 
+  AdminController.approveRider
+);
 export const AdminRoutes = router;

@@ -263,6 +263,16 @@ const loginUser = async (payload: TLoginUser) => {
 if (user.status === 'blocked') {
   throw new AppError(httpStatus.FORBIDDEN, 'Your account is blocked by admin!');
 }
+
+ if (user.role === 'driver' && user.status === 'pending') {
+    throw new AppError(
+      httpStatus.FORBIDDEN, 
+      "Your profile is under review. Please wait for admin to move you to approved status."
+    );
+  }
+
+
+
   const jwtPayload = {
     userId: user._id!.toString(),
     role: user?.role,
@@ -588,6 +598,7 @@ const registerRiderIntoDB = async (payload: IRider) => {
     dob: payload.dob,
     fcmToken: payload.fcmToken,
     role: 'driver',
+     status: 'pending',
     verification: riderPayloadWithVerification.verification 
   });
 
@@ -598,6 +609,7 @@ const registerRiderIntoDB = async (payload: IRider) => {
       type: "Point",
       coordinates: [0, 0] 
     },
+     status: 'pending',
     isAvailable: false, 
 
   });

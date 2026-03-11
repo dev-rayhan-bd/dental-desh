@@ -46,6 +46,7 @@ export interface IDeliveryQuote {
   paymentInfo: {
 
     deliveryCharge: number;
-    riderEarnings:number
+    riderEarnings:number;
+        riderPaymentStatus: 'pending' | 'paid';
   };
 }

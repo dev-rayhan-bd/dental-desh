@@ -54,8 +54,14 @@ const orderSchema = new Schema<IOrder>(
     ],
      paymentInfo: {
     deliveryCharge: { type: Number, required: true },
-    riderEarnings: { type: Number, default: 0 } 
+    riderEarnings: { type: Number, default: 0 } ,
+     riderPaymentStatus: { 
+        type: String, 
+        enum: ['pending', 'paid'], 
+        default: 'pending' 
+    },
   },
+  
     completedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
