@@ -62,7 +62,7 @@ const getNearbyRidersFromDB = async (lat: number, lng: number) => {
         $maxDistance: 500000, // 500000 mtr or 500 km
       },
     },
-  }).populate('user').select('-password -verification -fcmToken -__v');
+  }).select('-password -verification -fcmToken -__v');
 
   return riders;
 };
