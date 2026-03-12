@@ -62,7 +62,7 @@ const getNearbyRidersFromDB = async (lat: number, lng: number) => {
         $maxDistance: 500000, // 500000 mtr or 500 km
       },
     },
-  }).select('-password -verification -fcmToken -__v');
+  }).populate('user').select('-password -verification -fcmToken -__v');
 
   return riders;
 };
@@ -71,7 +71,7 @@ const getNearbyRidersFromDB = async (lat: number, lng: number) => {
 const getRiderOrderHistory = async (riderId: string, query: Record<string, unknown>) => {
   const orderQuery = new QueryBuilder(
     // status: 'delivered'
-    Order.find({ rider: riderId }).populate('user', 'fullName image '), 
+    Order.find({ rider: riderId }).populate('user'), 
     query
   ).search(['trackingId'])
     .filter()

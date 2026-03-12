@@ -75,7 +75,7 @@ const getMyOrdersFromDB = async (userId: string, query: Record<string, unknown>)
   const filteredQuery = { ...applyOrderFilters(query), user: userId };
 
   const orderQuery = new QueryBuilder(
-    Order.find().populate('rider'), 
+    Order.find().populate('user').populate('rider'), 
     filteredQuery
   )
     .search(['trackingId'])
