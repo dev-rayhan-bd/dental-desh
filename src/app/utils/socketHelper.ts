@@ -61,7 +61,23 @@ export const socketHelper = (io: SocketServer) => {
         console.log(`🏠 Joined room: ${roomId}`);
       }
     });
+socket.on("join-order-room", (data: any) => {
+  const roomId = typeof data === "string" ? data : data?.trackingId || data?.orderId;
 
+  if (roomId) {
+    socket.join(roomId);
+    console.log(`🏠 Joined room: ${roomId}`);
+
+   
+    socket.emit("joined-success", {
+      success: true,
+      message: `Successfully joined tracking room: ${roomId}`,
+      roomId: roomId
+    });
+  } else {
+    socket.emit("error-message", { message: "Invalid trackingId or orderId" });
+  }
+});
     // live loc update for order track
     socket.on("update-live-location", (data: any) => {
       if (!data || !data.orderId || !data.lat) return;
