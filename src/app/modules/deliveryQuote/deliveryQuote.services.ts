@@ -8,17 +8,32 @@ import { generateTrackingId } from '../../utils/generateTrackingId';
 import { calculateDeliveryCharge } from '../../utils/calculateDeliveryCharge';
 import { Rider } from '../rider/rider.model';
 
+// const createQuoteIntoDB = async (payload: any) => {
+//   payload.trackingId = generateTrackingId();
+//   payload.paymentInfo = {
+
+//     deliveryCharge: calculateDeliveryCharge(payload.dropOffs)
+//   };
+//   payload.timeline = [{ status: 'pending', message: 'Request placed', time: new Date() }];
+//   return await DeliveryQuote.create(payload);
+// };
+
 const createQuoteIntoDB = async (payload: any) => {
   payload.trackingId = generateTrackingId();
   payload.paymentInfo = {
-
     deliveryCharge: calculateDeliveryCharge(payload.dropOffs)
   };
   payload.timeline = [{ status: 'pending', message: 'Request placed', time: new Date() }];
-  return await DeliveryQuote.create(payload);
+
+
+  const result = await DeliveryQuote.create(payload);
+
+  
+
+  const populatedResult = await DeliveryQuote.findById(result._id).populate('user');
+
+  return populatedResult;
 };
-
-
 const getAllQuotesFromDB = async (query: Record<string, unknown>) => {
   const quoteQuery = new QueryBuilder(DeliveryQuote.find().populate('user rider'), query)
     .search(['trackingId', 'pickupLocation.formattedAddress'])
