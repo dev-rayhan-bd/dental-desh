@@ -160,15 +160,28 @@ socket.on('send-message', async (data: {
 
 
 
+
+
+
+
 socket.on('accept-delivery-job', async (data: { quoteId: string }) => {
   try {
     const riderId = socket.data.user?.userId;
-    
-   
+    if (!riderId) return socket.emit('error-message', 'Rider not authenticated');
+
+
     const result = await DeliveryQuoteService.acceptJobInDB(data.quoteId, riderId);
 
 
     socket.join(result.trackingId);
+
+
+    socket.emit('job-accept-success', {
+      success: true,
+      message: 'You have successfully accepted the job!',
+      trackingId: result.trackingId, 
+      orderId: result._id          
+    });
 
    
     io.to(result.trackingId).emit('order-status-updated', {
@@ -180,8 +193,11 @@ socket.on('accept-delivery-job', async (data: { quoteId: string }) => {
  
     io.emit('job-taken', { quoteId: data.quoteId });
 
+    console.log(`✅ Job Accepted: ${result.trackingId} by Rider: ${riderId}`);
+
   } catch (error: any) {
-    socket.emit('error-message', error.message);
+    console.error("❌ Job Accept Error:", error.message);
+    socket.emit('error-message', error.message || 'Failed to accept job');
   }
 });
 
