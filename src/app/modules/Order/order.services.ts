@@ -12,7 +12,7 @@ import { Rider } from '../rider/rider.model';
 
 
 
-const applyOrderFilters = (query: Record<string, unknown>) => {
+ const applyOrderFilters = (query: Record<string, unknown>) => {
   const filterObj: any = { ...query };
 
 
