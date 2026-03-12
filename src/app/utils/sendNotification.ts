@@ -75,3 +75,24 @@ export const sendNotificationToAdmins = async (
     console.error('Error sending notification to admins:', error);
   }
 };
+
+
+export const sendNotificationToAllRiders = async (title: string, message: string, trackingId: string) => {
+  try {
+
+    const riders = await UserModel.find({ role: 'driver', status: 'in-progress' });
+
+    for (const rider of riders) {
+   
+      await sendNotification(
+        rider._id.toString(),
+        title,
+        message,
+        "order",
+        trackingId
+      );
+    }
+  } catch (error) {
+    console.error("❌ Global Rider Notification Error:", error);
+  }
+};

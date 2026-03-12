@@ -6,6 +6,7 @@ import config from "../config";
 import { Message } from "../modules/Message/message.model";
 import { sendNotification } from "./sendNotification";
 import { DeliveryQuoteService } from "../modules/deliveryQuote/deliveryQuote.services";
+import { Order } from "../modules/Order/order.model";
 
 export const socketHelper = (io: SocketServer) => {
 
@@ -48,8 +49,25 @@ export const socketHelper = (io: SocketServer) => {
     //   console.log("❌ Socket Auth Error");
     // }
 
+  const user = socket.data.user;
+  const checkAndJoinPool = async () => {
+  if (user?.role === 'driver') {
+    const rider = await Rider.findById(user.userId);
 
+    if (rider?.isOnline && rider?.isAvailable) {
+      socket.join("available-riders");
+      console.log(`🟢 Rider ${user.userId} is now waiting for jobs`);
 
+ 
+      socket.emit('available-pool-joined', {
+        success: true,
+        message: "You are now in the available riders pool. Waiting for new jobs...",
+        room: "available-riders"
+      });
+    }
+  }
+};
+    checkAndJoinPool();
 
 
     socket.on("join-order-room", (data: any) => {
@@ -180,7 +198,8 @@ socket.on('accept-delivery-job', async (data: { quoteId: string }) => {
       success: true,
       message: 'You have successfully accepted the job!',
       trackingId: result.trackingId, 
-      orderId: result._id          
+      orderId: result._id,
+        roomStatus: "Left 'available-riders' and joined tracking room"           
     });
 
    
@@ -192,7 +211,8 @@ socket.on('accept-delivery-job', async (data: { quoteId: string }) => {
 
  
     io.emit('job-taken', { quoteId: data.quoteId });
-
+  socket.leave("available-riders");
+  socket.join(result.trackingId);
     console.log(`✅ Job Accepted: ${result.trackingId} by Rider: ${riderId}`);
 
   } catch (error: any) {
@@ -203,6 +223,48 @@ socket.on('accept-delivery-job', async (data: { quoteId: string }) => {
 
 
 
+
+socket.on('set-as-available', async () => {
+  try {
+    const user = socket.data.user;
+    if (user?.role !== 'driver') return;
+
+ 
+    const activeOrder = await Order.findOne({
+      rider: user.userId,
+      status: { $ne: 'delivered' } 
+    });
+
+    if (activeOrder) {
+     
+      return socket.emit('availability-error', {
+        success: false,
+        message: "Action denied! You cannot become available until your current delivery is finished."
+      });
+    }
+
+ 
+    await Rider.findByIdAndUpdate(user.userId, { 
+      isAvailable: true 
+    });
+
+   
+    socket.join("available-riders");
+
+  
+    socket.emit('availability-success', {
+      success: true,
+      isAvailable: true,
+      message: "You are now online and ready for new jobs."
+    });
+
+    console.log(`🔓 Rider ${user.userId} is now verified as free and added to pool.`);
+
+  } catch (error) {
+    console.error("❌ Availability Update Error:", error);
+    socket.emit('error-message', "Internal server error during availability update");
+  }
+});
 
 
 

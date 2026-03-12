@@ -5,18 +5,34 @@ import httpStatus from 'http-status';
 import { DeliveryQuoteService } from './deliveryQuote.services';
 import uploadImage from '../../middleware/upload';
 import AppError from '../../errors/AppError';
-import { sendNotification } from '../../utils/sendNotification';
+import { sendNotification, sendNotificationToAllRiders } from '../../utils/sendNotification';
 
+// const createQuote = catchAsync(async (req: Request, res: Response) => {
+//   const result = await DeliveryQuoteService.createQuoteIntoDB({ ...req.body, user: req.user.userId });
+//     const io = req.app.get('io');
+//   if (io) {
+
+//     io.emit('new-job-available', result); 
+//   }
+//   sendResponse(res, { statusCode: httpStatus.CREATED, success: true, message: 'Created', data: result });
+// });
 const createQuote = catchAsync(async (req: Request, res: Response) => {
   const result = await DeliveryQuoteService.createQuoteIntoDB({ ...req.body, user: req.user.userId });
-    const io = req.app.get('io');
+
+  const io = req.app.get('io');
   if (io) {
 
-    io.emit('new-job-available', result); 
+       io.to("available-riders").emit('new-job-available', result);
   }
-  sendResponse(res, { statusCode: httpStatus.CREATED, success: true, message: 'Created', data: result });
-});
 
+  await sendNotificationToAllRiders(
+    "New Job Nearby! 📦",
+    `A new delivery request is available. Tracking ID: ${result!.trackingId}`,
+    result!.trackingId
+  );
+
+  sendResponse(res, { statusCode: httpStatus.CREATED, success: true, message: 'Request placed!', data: result });
+});
 const getAllQuotes = catchAsync(async (req: Request, res: Response) => {
   const result = await DeliveryQuoteService.getAllQuotesFromDB(req.query);
   sendResponse(res, { statusCode: httpStatus.OK, success: true, data: result });
