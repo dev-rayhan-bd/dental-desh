@@ -182,46 +182,97 @@ socket.on('send-message', async (data: {
 
 
 
+// socket.on('accept-delivery-job', async (data: { quoteId: string }) => {
+//   try {
+//     const riderId = socket.data.user?.userId;
+//     if (!riderId) return socket.emit('error-message', 'Rider not authenticated');
+
+
+//     const result = await DeliveryQuoteService.acceptJobInDB(data.quoteId, riderId);
+
+
+//     socket.join(result.trackingId);
+
+
+//     const fullOrderData = await Order.findById(result._id)
+
+//       .populate('user')
+//       .populate('rider')
+//       .lean();
+
+ 
+//     socket.emit('job-accept-success', {
+//       success: true,
+//       message: 'You have successfully accepted the job!',
+//       trackingId: result.trackingId, 
+//       roomStatus: "Left 'available-riders' and joined tracking room",
+//       data: fullOrderData 
+//     });
+
+   
+//     io.to(result.trackingId).emit('order-status-updated', {
+//       status: 'req accepted',
+//       rider: result.rider,
+//       trackingId: result.trackingId
+//     });
+
+ 
+//     io.emit('job-taken', { quoteId: data.quoteId });
+//   socket.leave("available-riders");
+//   socket.join(result.trackingId);
+//     console.log(`✅ Job Accepted: ${result.trackingId} by Rider: ${riderId}`);
+
+//   } catch (error: any) {
+//     console.error("❌ Job Accept Error:", error.message);
+//     socket.emit('error-message', error.message || 'Failed to accept job');
+//   }
+// });
+
 socket.on('accept-delivery-job', async (data: { quoteId: string }) => {
   try {
     const riderId = socket.data.user?.userId;
     if (!riderId) return socket.emit('error-message', 'Rider not authenticated');
 
-
+  
     const result = await DeliveryQuoteService.acceptJobInDB(data.quoteId, riderId);
 
-
-    socket.join(result.trackingId);
-
-
-    socket.emit('job-accept-success', {
-      success: true,
-      message: 'You have successfully accepted the job!',
-      trackingId: result.trackingId, 
-      orderId: result._id,
-        roomStatus: "Left 'available-riders' and joined tracking room"           
-    });
+    
+    socket.leave("available-riders"); 
+    socket.join(result.trackingId);  
 
    
-    io.to(result.trackingId).emit('order-status-updated', {
-      status: 'req accepted',
-      rider: result.rider,
-      trackingId: result.trackingId
+    const fullOrderData = await Order.findById(result._id)
+      .populate('user')
+      .populate('rider')
+      .lean();
+
+    //send rider confirmation (Private)
+    socket.emit('job-accept-success', {
+      success: true,
+      message: 'You have claimed the job!',
+      trackingId: result.trackingId, 
+      data: fullOrderData 
     });
 
- 
+    // for user (Broadcast)
+
+    io.to(result.trackingId).emit('order-status-updated', {
+        success: true,
+      message: 'Rider Found!  Your delivery is on the way.',
+      trackingId: result.trackingId, 
+      data: fullOrderData
+    });
+
+
     io.emit('job-taken', { quoteId: data.quoteId });
-  socket.leave("available-riders");
-  socket.join(result.trackingId);
-    console.log(`✅ Job Accepted: ${result.trackingId} by Rider: ${riderId}`);
+
+    console.log(`✅ Job ${result.trackingId} synced successfully.`);
 
   } catch (error: any) {
     console.error("❌ Job Accept Error:", error.message);
     socket.emit('error-message', error.message || 'Failed to accept job');
   }
 });
-
-
 
 
 socket.on('set-as-available', async () => {
