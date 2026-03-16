@@ -4,8 +4,10 @@ import { UserModel } from '../modules/User/user.model';
 import config from '../config';
 
 // Firebase Initialize
-const serviceAccount = require('../../../firebase-admin-config.json');
-
+// const serviceAccount = require('../../../firebase-admin-config.json');
+const serviceAccount = process.env.FIREBASE_ADMIN_CONFIG 
+  ? JSON.parse(process.env.FIREBASE_ADMIN_CONFIG) //for render
+  : require('../../../firebase-admin-config.json');
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
