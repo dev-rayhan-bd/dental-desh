@@ -97,18 +97,22 @@ socket.on("join-order-room", (data: any) => {
   }
 });
     // live loc update for order track
-    socket.on("update-live-location", (data: any) => {
-      if (!data || !data.orderId || !data.lat) return;
+   socket.on("update-live-location", (data: any) => {
 
-      console.log(
-        `📍 Rider ${socket.data.user?.userId} moving in room: ${data.orderId}`,
-      );
-      socket.to(data.orderId).emit("rider-location-updated", {
-        lat: data.lat,
-        lng: data.lng,
-        riderId: socket.data.user?.userId,
-      });
-    });
+  const roomId = data?.trackingId || data?.orderId;
+  
+  if (!roomId || !data.lat) return;
+
+
+  console.log(` Rider ${socket.data.user?.userId} moving in room: ${roomId}`);
+
+
+  socket.to(roomId).emit("rider-location-updated", {
+    lat: data.lat,
+    lng: data.lng,
+    riderId: socket.data.user?.userId,
+  });
+});
 
     // rider loc update on db
     socket.on("rider-location-update", async (data: any) => {

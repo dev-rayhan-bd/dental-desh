@@ -15,4 +15,9 @@ router.patch(
   auth(USER_ROLE.superAdmin), 
   AdminController.approveRider
 );
+router.post(
+  '/reset-test-data',
+  auth(USER_ROLE.driver),
+  AdminController.resetMyTestData
+);
 export const AdminRoutes = router;

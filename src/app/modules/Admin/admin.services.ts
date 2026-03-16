@@ -58,8 +58,29 @@ const approveRiderInDB = async (riderId: string) => {
 };
 
 
+const resetRiderTestDataInDB = async (riderId: string) => {
+
+  const orderCleanup = await Order.deleteMany({
+    rider: riderId,
+    status: { $ne: 'delivered' } 
+  });
+
+
+  const result = await Rider.findByIdAndUpdate(
+    riderId,
+    { 
+      $set: { isAvailable: true, isOnline: true } 
+    },
+    { new: true }
+  );
+
+  return {
+    ordersDeleted: orderCleanup.deletedCount,
+    riderStatus: result?.isAvailable ? "Available" : "Error"
+  };
+};
 
 
 export const AdminServices = {
-  getDashboardStatsFromDB,approveRiderInDB
+  getDashboardStatsFromDB,approveRiderInDB,resetRiderTestDataInDB
 };

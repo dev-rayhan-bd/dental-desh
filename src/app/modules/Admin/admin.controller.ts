@@ -29,6 +29,20 @@ const approveRider = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+
+const resetMyTestData = catchAsync(async (req: Request, res: Response) => {
+  const riderId = req.user.userId; 
+  
+  const result = await AdminServices.resetRiderTestDataInDB(riderId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Your test data has been reset. You are now free to take new jobs!",
+    data: result
+  });
+});
+
 export const AdminController = {
-  getDashboardStats,approveRider
+  getDashboardStats,approveRider,resetMyTestData
 };
