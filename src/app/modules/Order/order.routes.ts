@@ -38,6 +38,10 @@ router.get(
   auth(USER_ROLE.user), 
   OrderController.getOngoingOrders
 );
-
+router.get(
+  '/rider-ongoing', 
+  auth('driver'), 
+  OrderController.getRiderOngoingOrders
+);
 
 export const OrderRoutes = router;

@@ -189,6 +189,17 @@ const getOngoingOrders = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getRiderOngoingOrders = catchAsync(async (req: Request, res: Response) => {
+  const riderId = req.user.userId;
+  const result = await OrderService.getRiderOngoingOrdersFromDB(riderId as string, req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Rider's ongoing tasks retrieved successfully",
+    data: result,
+  });
+});
 
 
-export const OrderController = { getAllOrders, getMyOrders, trackOrder, getSingleOrder,updateParcelStatus,getOngoingOrders };
+export const OrderController = { getAllOrders, getMyOrders, trackOrder, getSingleOrder,updateParcelStatus,getOngoingOrders,getRiderOngoingOrders };
