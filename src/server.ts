@@ -1,4 +1,4 @@
-import { Server } from 'http';
+import { createServer, Server } from 'http';
 
 import app from './app';
 
@@ -15,9 +15,10 @@ async function main() {
   try {
     await mongoose.connect(config.database_url as string);
 
-    server = app.listen(config.port, () => {
-      console.log(`app is listening on port ${config.port}`);
-    });
+
+    server = createServer(app);
+
+
     // socket configaration
  const io = new SocketServer(server, {
       cors: {
@@ -30,6 +31,13 @@ async function main() {
 
     socketHelper(io);
     app.set('io', io); 
+
+
+  server.listen(Number(config.port), "0.0.0.0", () => {
+  console.log(`🚀 Server is running on port ${config.port}`);
+});
+
+
   } catch (err) {
     console.log(err);
   }
