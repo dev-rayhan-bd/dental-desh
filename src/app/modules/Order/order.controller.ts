@@ -6,6 +6,7 @@ import { OrderService } from './order.services';
 import AppError from '../../errors/AppError';
 import uploadImage from '../../middleware/upload';
 import { sendNotification } from '../../utils/sendNotification';
+import { Order } from './order.model';
 
 const getAllOrders = catchAsync(async (req: Request, res: Response) => {
   const result = await OrderService.getAllOrdersFromDB(req.query);
@@ -28,9 +29,12 @@ const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
 });
 
 
+
+
 // const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
 //   const { id, index } = req.params;
 //   const payload = { ...req.body };
+// const riderId = req.user.userId;
 
 
 //   if (payload.status === 'delivered') {
@@ -50,8 +54,48 @@ const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
 //   }
 
 
+
+
+//   // db update (Service Call)
 //   const result = await OrderService.updateOrderStatusInDB(id as string, Number(index), payload);
 
+
+// //for user
+//   await sendNotification(
+//     result?.user.toString() as string,
+//     "Delivery Update 📦",
+//     payload.message || `Status: ${payload.status}`,
+//     "order",
+//       result?.trackingId,           
+//   payload.status 
+//   );
+
+//   //for rider
+//   await sendNotification(
+//     riderId,
+//     "Update Successful!",
+//     `You updated Order #${result?.trackingId} to ${payload.status}`,
+//     "order"
+//   );
+
+
+
+
+//   // real time status update using socket
+
+//   const io = req.app.get('io');
+
+
+//   if (io && result) {
+ 
+//     io.to(result.trackingId).emit('order-status-updated', {
+//       status: result.status,
+//       index: Number(index),
+//       message: payload.message,
+//       timeline: result.timeline,
+//       dropOffs: result.dropOffs
+//     });
+//   }
 //   sendResponse(res, {
 //     statusCode: httpStatus.OK,
 //     success: true,
@@ -60,16 +104,14 @@ const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
 //   });
 // });
 
-
 const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
   const { id, index } = req.params;
   const payload = { ...req.body };
-const riderId = req.user.userId;
+  const riderId = req.user.userId;
 
 
   if (payload.status === 'delivered') {
     const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-
 
     if (!files?.deliveryProofImg || !files.deliveryProofImg[0]) {
       throw new AppError(httpStatus.BAD_REQUEST, "Delivery proof image is required to complete delivery");
@@ -83,49 +125,48 @@ const riderId = req.user.userId;
     payload.signatureImg = await uploadImage(req, files.signatureImg[0]);
   }
 
+  const updateResult = await OrderService.updateOrderStatusInDB(id as string, Number(index), payload);
 
 
+  const result = await Order.findById(updateResult!._id)
+    .populate('user')
+    .populate('rider')
+    .lean();
 
-  // db update (Service Call)
-  const result = await OrderService.updateOrderStatusInDB(id as string, Number(index), payload);
+  if (!result) {
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to retrieve updated order");
+  }
 
 
-//for user
   await sendNotification(
-    result?.user.toString() as string,
+    (result.user as any)._id.toString(),
     "Delivery Update 📦",
     payload.message || `Status: ${payload.status}`,
     "order",
-      result?.trackingId,           
-  payload.status 
+    result.trackingId,
+    payload.status
   );
 
-  //for rider
+
   await sendNotification(
     riderId,
     "Update Successful!",
-    `You updated Order #${result?.trackingId} to ${payload.status}`,
+    `You updated Order #${result.trackingId} to ${payload.status}`,
     "order"
   );
 
 
-
-
-  // real time status update using socket
-
   const io = req.app.get('io');
-
-
-  if (io && result) {
- 
+  if (io) {
     io.to(result.trackingId).emit('order-status-updated', {
-      status: result.status,
-      index: Number(index),
-      message: payload.message,
-      timeline: result.timeline,
-      dropOffs: result.dropOffs
+      success: true,
+      message: payload.message || `Your delivery is on the way.`,
+      trackingId: result.trackingId,
+      data: result 
     });
   }
+
+ 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -133,6 +174,4 @@ const riderId = req.user.userId;
     data: result,
   });
 });
-
-
 export const OrderController = { getAllOrders, getMyOrders, trackOrder, getSingleOrder,updateParcelStatus };
