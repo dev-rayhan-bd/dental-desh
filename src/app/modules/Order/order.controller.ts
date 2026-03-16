@@ -111,8 +111,8 @@ const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
 
 
   if (payload.status === 'delivered') {
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-
+    // const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+const files = req.files as any;
     if (!files?.deliveryProofImg || !files.deliveryProofImg[0]) {
       throw new AppError(httpStatus.BAD_REQUEST, "Delivery proof image is required to complete delivery");
     }

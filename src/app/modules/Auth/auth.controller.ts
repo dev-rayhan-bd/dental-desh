@@ -183,8 +183,8 @@ const verifyYourOTP = catchAsync(async (req:Request, res:Response) => {
 const registerRider = catchAsync(async (req: Request, res: Response) => {
   const riderPayload = req.body;
   // console.log("driver paylod from controller--->",riderPayload);
-  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-
+  // const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+const files = req.files as any;
 
   if (files?.image) {
     riderPayload.image = await uploadImage(req, files.image[0]);
