@@ -257,19 +257,36 @@ if (index === -1) {
   }
 
 
-
-
-
-
-
-
-
-
-
-  
   return result;
 };
 
+const getOngoingOrdersFromDB = async (userId: string, query: Record<string, unknown>) => {
+
+  let filteredQuery = applyOrderFilters(query);
+
+
+  if (!query.status) {
+    filteredQuery.status = { $in: ['req accepted', 'percel picked', 'trip started'] };
+  }
+
+
+  filteredQuery.user = userId;
+
+  const ongoingQuery = new QueryBuilder(
+    Order.find().populate('rider user'), 
+    filteredQuery
+  )
+    .search(['trackingId', 'pickupLocation.formattedAddress'])
+    .filter()
+    .sort('-createdAt')
+    .paginate()
+    .fields();
+
+  const result = await ongoingQuery.modelQuery;
+  const meta = await ongoingQuery.countTotal();
+
+  return { meta, result };
+};
 
 
 export const OrderService = {
@@ -277,5 +294,5 @@ export const OrderService = {
   getMyOrdersFromDB,
   trackOrderByIDFromDB,
   getSingleOrderFromDB,
-  updateOrderStatusInDB
+  updateOrderStatusInDB,getOngoingOrdersFromDB
 };

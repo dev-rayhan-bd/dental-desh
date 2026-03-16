@@ -174,4 +174,21 @@ const updateParcelStatus = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-export const OrderController = { getAllOrders, getMyOrders, trackOrder, getSingleOrder,updateParcelStatus };
+
+
+const getOngoingOrders = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.userId;
+  
+  const result = await OrderService.getOngoingOrdersFromDB(userId as string, req.query);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Ongoing orders retrieved successfully",
+    data: result,
+  });
+});
+
+
+
+export const OrderController = { getAllOrders, getMyOrders, trackOrder, getSingleOrder,updateParcelStatus,getOngoingOrders };

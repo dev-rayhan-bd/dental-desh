@@ -32,4 +32,12 @@ router.patch(
   OrderController.updateParcelStatus
 );
 
+
+router.get(
+  '/ongoing', 
+  auth(USER_ROLE.user), 
+  OrderController.getOngoingOrders
+);
+
+
 export const OrderRoutes = router;
