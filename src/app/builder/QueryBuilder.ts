@@ -16,7 +16,7 @@ class QueryBuilder<T> {
         $or: searchableFields.map((field) => ({
           [field]: { $regex: search, $options: 'i' },
         })),
-      } as any);  
+      } as any) as unknown as Query<T[], T>;
     }
     return this;
   }
@@ -98,9 +98,12 @@ sort(field: string = 'createdAt', order: 1 | -1 = -1) {
   }
 
   fields() {
+
     const fields =
       (this.query?.fields as string)?.split(',')?.join(' ') || '-__v';
-    this.modelQuery = this.modelQuery.select(fields);
+  const mongo: Record<string, unknown> = {};
+      
+  this.modelQuery = this.modelQuery.find(mongo as any) as unknown as Query<T[], T>;  
     return this;
   }
 

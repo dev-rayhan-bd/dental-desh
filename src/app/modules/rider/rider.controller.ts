@@ -110,7 +110,8 @@ const getMyWallet = catchAsync(async (req: Request, res: Response) => {
 const updateProfile = catchAsync(async (req: Request, res: Response) => {
   const riderId = req.user.userId;
   const payload = req.body;
-  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  // const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  const files = req.files as any;
 
 
   if (payload.vehicleNumber && (!files || !files.vehicleImage)) {

@@ -6,7 +6,8 @@ import cloudinary from '../utils/cloudinary';
 
 const uploadImage = async (
   req: Request,
-  file?: Express.Multer.File,
+  // file?: Express.Multer.File,
+  file = req.files as any,
 ): Promise<string> => {
   const target = file ?? req.file;
 
