@@ -40,11 +40,11 @@ const createReviewInDB = async (payload: any) => {
 
 const getRiderReviewsFromDB = async (riderId: string, query: Record<string, unknown>) => {
   const reviewQuery = new QueryBuilder(
-    Review.find({ rider: riderId }).populate('user', 'fullName image'), // কাস্টমারের নাম ও ছবি সহ
+    Review.find({ rider: riderId }).populate('user', 'fullName image'),
     query
   )
     .filter()
-    .sort('-createdAt') // লেটেস্ট রিভিউ আগে
+    .sort() 
     .paginate()
     .fields();
 

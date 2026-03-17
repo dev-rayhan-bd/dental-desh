@@ -68,26 +68,54 @@ filter() {
 
 
 
-sort(field: string = 'createdAt', order: 1 | -1 = -1) {
-  // Handle case where sort could be string or string[]
-  let sortQuery = this.query?.sort;
-  if (Array.isArray(sortQuery)) {
-    sortQuery = sortQuery[0]; // Take first value if array
-  }
+// sort(field: string = 'createdAt', order: 1 | -1 = -1) {
+//   // Handle case where sort could be string or string[]
+//   let sortQuery = this.query?.sort;
+//   if (Array.isArray(sortQuery)) {
+//     sortQuery = sortQuery[0]; // Take first value if array
+//   }
   
-  let sortField: string | { [key: string]: 1 | -1 } = sortQuery as string || `${field}`;
+//   let sortField: string | { [key: string]: 1 | -1 } = sortQuery as string || `${field}`;
 
-  if (this.query?.price) {
+//   if (this.query?.price) {
+//     const priceSort = (Array.isArray(this.query.price) ? this.query.price[0] : this.query.price) === 'asc' ? 1 : -1;
+//     sortField = { price: priceSort };
+//   } else {
+//     sortField = { [field]: order };
+//   }
+
+//   this.modelQuery = this.modelQuery.sort(sortField);
+//   return this;
+// }
+// src/app/builder/QueryBuilder.ts
+
+sort(field: string = 'createdAt', order: 1 | -1 = -1) {
+  let sortQuery = this.query?.sort as string;
+  
+  if (Array.isArray(sortQuery)) {
+    sortQuery = sortQuery[0];
+  }
+
+  let sortField: any;
+
+
+  if (sortQuery) {
+    sortField = sortQuery;
+  } 
+
+  else if (this.query?.price) {
     const priceSort = (Array.isArray(this.query.price) ? this.query.price[0] : this.query.price) === 'asc' ? 1 : -1;
     sortField = { price: priceSort };
-  } else {
-    sortField = { [field]: order };
+  } 
+
+  else {
+
+    sortField = field.startsWith('-') ? field : { [field]: order };
   }
 
   this.modelQuery = this.modelQuery.sort(sortField);
   return this;
 }
-
   paginate() {
     const page = Number(this.query?.page) || 1;
     const limit = Number(this.query?.limit) || 10;

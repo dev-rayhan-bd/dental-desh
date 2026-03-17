@@ -105,7 +105,7 @@ const getAllQuotesFromDB = async (query: Record<string, unknown>) => {
   )
     .search(['trackingId', 'pickupLocation.formattedAddress'])
     .filter()
-    .sort('-createdAt')
+    .sort()
     .paginate();
 
   const result = await quoteQuery.modelQuery;
@@ -122,7 +122,7 @@ const getMyQuotesFromDB = async (userId: string, query: Record<string, unknown>)
     filteredQuery
   )
     .filter()
-    .sort('-createdAt')
+    .sort()
     .paginate();
 
   const result = await quoteQuery.modelQuery;

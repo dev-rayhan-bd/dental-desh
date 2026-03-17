@@ -60,7 +60,7 @@ const getAllOrdersFromDB = async (query: Record<string, unknown>) => {
   )
     .search(['trackingId', 'pickupLocation.formattedAddress'])
     .filter()
-    .sort('-createdAt')
+    .sort()
     .paginate()
     .fields();
 
@@ -80,7 +80,7 @@ const getMyOrdersFromDB = async (userId: string, query: Record<string, unknown>)
   )
     .search(['trackingId'])
     .filter()
-    .sort('-createdAt')
+    .sort()
     .paginate()
     .fields();
 
@@ -278,7 +278,7 @@ const getOngoingOrdersFromDB = async (userId: string, query: Record<string, unkn
   )
     .search(['trackingId', 'pickupLocation.formattedAddress'])
     .filter()
-    .sort('-createdAt')
+    .sort()
     .paginate()
     .fields();
 
@@ -303,7 +303,7 @@ const getRiderOngoingOrdersFromDB = async (riderId: string, query: Record<string
   )
     .search(['trackingId', 'pickupLocation.formattedAddress']) 
     .filter()  
-    .sort('-createdAt') 
+    .sort() 
     .paginate()  
     .fields();
 
