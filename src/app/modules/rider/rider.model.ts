@@ -46,6 +46,10 @@ const riderSchema = new Schema<IRider, RiderModel, IUserMethods>(
     totalEarnings: { type: Number, default: 0 },
     totalTrips: { type: Number, default: 0 },
     rating: { type: Number, default: 0 }, 
+    //    totalReviews: { 
+    //   type: Number, 
+    //   default: 0 
+    // },
   },
   { timestamps: true }
 );

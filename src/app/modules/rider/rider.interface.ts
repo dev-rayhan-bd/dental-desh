@@ -30,7 +30,7 @@ isOnline: boolean;
   totalEarnings: number;   
   totalTrips: number;   
   rating: number;       
-
+  //  totalReviews: number;
 }
 
 

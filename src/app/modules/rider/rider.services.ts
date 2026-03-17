@@ -13,7 +13,7 @@ import { TUser } from "../User/user.interface";
 
 
 const getMyProfileFromDB = async (id: string, ) => {
-  const result = await Rider.findById(id);
+  const result = await Rider.findById(id)
 
   return result;
 };

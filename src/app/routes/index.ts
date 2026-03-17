@@ -12,6 +12,7 @@ import { RiderRoutes } from '../modules/rider/rider.routes';
 import { MessageRoutes } from '../modules/Message/message.routes';
 import { NotificationRoutes } from '../modules/Notification/notification.routes';
 import { AdminRoutes } from '../modules/Admin/admin.routes';
+import { ReviewRoutes } from '../modules/review/review.routes';
 
 
 
@@ -72,6 +73,10 @@ const moduleRoutes = [
 {
   path: '/admin',
   route: AdminRoutes,
+},
+{
+  path: '/review',
+  route: ReviewRoutes,
 },
 
 ];
