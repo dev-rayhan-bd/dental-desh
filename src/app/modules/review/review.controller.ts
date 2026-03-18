@@ -18,8 +18,9 @@ const createReview = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMyReviews = catchAsync(async (req: Request, res: Response) => {
-  const riderId = req.user.userId;
-  const result = await ReviewService.getRiderReviewsFromDB(riderId, req.query);
+//   const riderId = req.user.userId;
+  const { riderId } = req.params;
+  const result = await ReviewService.getRiderReviewsFromDB(riderId as string, req.query); 
 
   sendResponse(res, {
     statusCode: 200,

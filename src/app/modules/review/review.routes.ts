@@ -13,6 +13,6 @@ router.post(
   ReviewController.createReview
 );
 
-router.get('/my-reviews',auth('driver'), ReviewController.getMyReviews);
+router.get('/:riderId',auth('driver','user'), ReviewController.getMyReviews);
 
 export const ReviewRoutes = router;
