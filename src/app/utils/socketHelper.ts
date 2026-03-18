@@ -162,7 +162,14 @@ socket.on('send-message', async (data: {
   });
 
 
-  io.to(data.trackingId).emit('new-message', newMessage);
+    const populatedMessage = await Message.findById(newMessage._id)
+      .populate('sender', 'fullName email contact image')
+      .populate('receiver', 'fullName email contact image')
+      .lean();
+
+  
+    io.to(data.trackingId).emit('new-message', populatedMessage);
+  // io.to(data.trackingId).emit('new-message', newMessage);
   
   console.log(`📩 Message saved & sent to room: ${data.trackingId}`);
 

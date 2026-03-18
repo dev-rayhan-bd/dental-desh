@@ -6,13 +6,15 @@ import { MessageService } from './message.services';
 
 const getChatHistory = catchAsync(async (req: Request, res: Response) => {
   const { trackingId } = req.params;
-  const result = await MessageService.getChatHistoryFromDB(trackingId as string);
+
+
+  const result = await MessageService.getChatHistoryFromDB(trackingId as string, req.query);
 
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
     message: 'Chat history retrieved successfully',
-    data: result,
+    data: result, 
   });
 });
 
