@@ -62,6 +62,7 @@ router.post(
   '/resendOtp',
   AuthControllers.resendOtp,
 );
+
 router.post('/login',
     validateRequest(AuthValidation.loginValidationSchema),
     AuthControllers.userLogin
