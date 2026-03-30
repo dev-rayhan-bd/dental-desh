@@ -14,6 +14,7 @@ import config from "../../config";
 import { sendNotificationToAdmins } from "../../utils/sendNotification";
 import { IRider } from "../rider/rider.interface";
 import { Rider } from "../rider/rider.model";
+import mongoose from "mongoose";
 
 // register new user
 const registeredUserIntoDB = async (payload: TUser) => {
@@ -65,60 +66,6 @@ const registeredUserIntoDB = async (payload: TUser) => {
     result: user,
   };
 };
-// export const verifyOTPForRegistration = async (email: string, otp: string) => {
-//   const user = await UserModel.findOne({ email });
-//   if (!user) {
-//     throw new AppError(httpStatus.NOT_FOUND, "User not found");
-//   }
-
-//   //  Check OTP expiry
-//   if (
-//     !user.verification?.expireDate ||
-//     user.verification.expireDate < new Date()
-//   ) {
-//     throw new AppError(
-//       httpStatus.UNAUTHORIZED,
-//       "OTP has expired,resend Otp And try again"
-//     );
-//   }
-
-//   //  Compare OTP
-//   const isMatch = user.compareVerificationCode(otp);
-//   if (!isMatch) {
-//     throw new AppError(httpStatus.UNAUTHORIZED, "OTP not matched, try again");
-//   }
-//   // when otp is verified
-//   user.isOtpVerified = true;
-//   //  If successful, you can clear the OTP
-//   user.verification = undefined;
-//   await user.save();
-//   // Generate JWT tokens
-//   const jwtPayload = {
-//     userId: user._id!.toString(),
-//     role: user?.role,
-//   };
-//   const accessToken = createToken(
-//     jwtPayload,
-//     config.jwt_access_secret as string,
-//     config.jwt_access_expires_in as string
-//   );
-//   const refreshToken = createToken(
-//     jwtPayload,
-//     config.jwt_refresh_secret as string,
-//     config.jwt_refresh_expires_in as string
-//   );
-//     await sendNotificationToAdmins(
-//     'New User Registered! 👤',
-//     `${user.fullName} has just joined `,
-//     'general'
-//   );
-//   return {
-//     status: httpStatus.OK,
-//     message: "OTP verified successfully",
-//     accessToken,
-//     refreshToken,
-//   };
-// };
 
 
 
@@ -562,74 +509,129 @@ export const verifyOTP = async (email: string, otp: string) => {
 
 
 
-const registerRiderIntoDB = async (payload: IRider) => {
-  // console.log("driver paylod--->",payload);
+// const registerRiderIntoDB = async (payload: IRider) => {
+//   // console.log("driver paylod--->",payload);
 
-  const existingUser = await UserModel.findOne({ 
-    $or: [{ email: payload.email }, { identificationNo: payload.identificationNo }] 
-  });
+//   const existingUser = await UserModel.findOne({ 
+//     $or: [{ email: payload.email }, { identificationNo: payload.identificationNo }] 
+//   });
   
-  if (existingUser) {
-    throw new AppError(httpStatus.CONFLICT, "Email or Identification No already exists!");
+//   if (existingUser) {
+//     throw new AppError(httpStatus.CONFLICT, "Email or Identification No already exists!");
+//   }
+
+
+//   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+//   const riderPayloadWithVerification = {
+//     ...payload,
+//     verification: {
+//       code: otp,
+//       expireDate: new Date(Date.now() + 5 * 60 * 1000),
+//     },
+//   };
+//   const riderData = {
+//     ...payload,
+//     verification: {
+//       code: otp,
+//       expireDate: new Date(Date.now() + 5 * 60 * 1000),
+//     },
+//   };
+//   const user = await UserModel.create({
+//     fullName: payload.fullName,
+//     email: payload.email,
+//     password: payload.password,
+//     contact: payload.contact,
+//     location: payload.location,
+//     dob: payload.dob,
+//     fcmToken: payload.fcmToken,
+//     role: 'driver',
+//      status: 'pending',
+//     verification: riderPayloadWithVerification.verification 
+//   });
+
+//   const result = await Rider.create({
+//     ...payload,
+//     _id: user._id, 
+//        lastLocation: {
+//       type: "Point",
+//       coordinates: [0, 0] 
+//     },
+//      status: 'pending',
+//     isAvailable: false, 
+
+//   });
+
+
+
+
+
+//   await sendMail(
+//     payload.email,
+//     "Rider Verification Code",
+//     `Your verification code is: ${otp}. It will expire in 5 minutes.`
+//   );
+
+//   return result;
+// };
+
+
+
+const registerRiderIntoDB = async (payload: IRider) => {
+
+  const session = await mongoose.startSession();
+  
+  try {
+    session.startTransaction();
+
+   
+    const existingEmail = await UserModel.findOne({ email: payload.email }).session(session);
+    if (existingEmail) {
+      throw new AppError(httpStatus.CONFLICT, "Email already exists!");
+    }
+
+
+    const existingId = await Rider.findOne({ identificationNo: payload.identificationNo }).session(session);
+    if (existingId) {
+      throw new AppError(httpStatus.CONFLICT, "Identification No already exists!");
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationData = {
+      code: otp,
+      expireDate: new Date(Date.now() + 5 * 60 * 1000),
+    };
+
+    
+    const user = await UserModel.create([{
+      ...payload,
+      role: 'driver',
+      status: 'pending',
+      verification: verificationData 
+    }], { session });
+
+    const riderResult = await Rider.create([{
+      ...payload,
+      _id: user[0]._id, 
+      status: 'pending',
+      isAvailable: false,
+      lastLocation: { type: "Point", coordinates: [0, 0] }
+    }], { session });
+
+    await session.commitTransaction();
+    await session.endSession();
+
+   
+    await sendMail(payload.email, "Verification Code", `Code: ${otp}`);
+
+    return riderResult[0];
+
+  } catch (error) {
+
+    await session.abortTransaction();
+    await session.endSession();
+    throw error;
   }
-
-
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const riderPayloadWithVerification = {
-    ...payload,
-    verification: {
-      code: otp,
-      expireDate: new Date(Date.now() + 5 * 60 * 1000),
-    },
-  };
-  const riderData = {
-    ...payload,
-    verification: {
-      code: otp,
-      expireDate: new Date(Date.now() + 5 * 60 * 1000),
-    },
-  };
-  const user = await UserModel.create({
-    fullName: payload.fullName,
-    email: payload.email,
-    password: payload.password,
-    contact: payload.contact,
-    location: payload.location,
-    dob: payload.dob,
-    fcmToken: payload.fcmToken,
-    role: 'driver',
-     status: 'pending',
-    verification: riderPayloadWithVerification.verification 
-  });
-
-  const result = await Rider.create({
-    ...payload,
-    _id: user._id, 
-       lastLocation: {
-      type: "Point",
-      coordinates: [0, 0] 
-    },
-     status: 'pending',
-    isAvailable: false, 
-
-  });
-
-
-
-
-
-  await sendMail(
-    payload.email,
-    "Rider Verification Code",
-    `Your verification code is: ${otp}. It will expire in 5 minutes.`
-  );
-
-  return result;
 };
-
-
-
-
 
 
 

@@ -3,3 +3,5 @@ node_modules
 .vercel
 dist
 firebase-admin-config.json
+temp_auto_push.bat
+temp_interactive_push.bat
