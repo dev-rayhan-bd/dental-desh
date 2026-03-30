@@ -6,6 +6,8 @@ import httpStatus from 'http-status';
 import AppError from '../../errors/AppError';
 import config from '../../config';
 import { sendNotificationToAdmins } from '../../utils/sendNotification';
+import { Support } from '../support/support.model';
+import { UserModel } from '../User/user.model';
 
 const sendMessage = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -18,6 +20,26 @@ const sendMessage = async (req: Request, res: Response): Promise<void> => {
       });
       return;
     }
+
+   const userId = req.user?.userId; 
+     let finalName = "guestName";
+    let finalEmail = "guestEmail";
+
+
+    if (userId) {
+      const user = await UserModel.findById(userId).select('fullName email');
+      if (user) {
+        finalName = user.fullName;
+        finalEmail = user.email;
+      }
+    }
+  await Support.create({
+      user: userId || null,
+      name: finalName,  
+      email: finalEmail,
+      subject,
+      message
+    });
 
     // create transporter
     const transporter = nodemailer.createTransport({

@@ -13,6 +13,7 @@ import { MessageRoutes } from '../modules/Message/message.routes';
 import { NotificationRoutes } from '../modules/Notification/notification.routes';
 import { AdminRoutes } from '../modules/Admin/admin.routes';
 import { ReviewRoutes } from '../modules/review/review.routes';
+import { SupportRoutes } from '../modules/support/support.routes';
 
 
 
@@ -78,7 +79,10 @@ const moduleRoutes = [
   path: '/review',
   route: ReviewRoutes,
 },
-
+{
+  path: '/support',
+  route: SupportRoutes,
+},
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
